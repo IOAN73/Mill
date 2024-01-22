@@ -12,6 +12,12 @@ python = "^3.11"
 
 [tool.poetry.group.client.dependencies]
 pygame = "^2.5.2"
+httpx = "^0.26.0"
+
+
+[tool.poetry.group.server.dependencies]
+fastapi = "^0.109.0"
+uvicorn = "^0.26.0"
 
 [build-system]
 requires = ["poetry-core"]
