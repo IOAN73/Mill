@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "mill"
+version = "0.1.0"
+description = ""
+authors = []
+license = ""
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+
+[tool.poetry.group.client.dependencies]
+pygame = "^2.5.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
