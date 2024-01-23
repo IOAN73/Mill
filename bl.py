@@ -55,6 +55,15 @@ def handle_start_screen_click(mouse_position, two_players_button, vs_computer_bu
         return None
 
 
+# Добавление координат точек на игровом поле
+points = {'A1': (30, 670), 'A4': (30, 350), 'A7': (30, 30),
+          'B2': (135, 560), 'B4': (135, 350), 'B6': (135, 140),
+          'C3': (240, 450), 'C4': (240, 350), 'C5': (240, 240),
+          'D1': (350, 670), 'D2': (350, 560), 'D3': (350, 450), 'D5': (350, 240), 'D6': (350, 140), 'D7': (350, 30),
+          'E3': (450, 450), 'E4': (450, 350), 'E5': (450, 240),
+          'F2': (560, 560), 'F4': (560, 350), 'F6': (560, 140),
+          'G1': (670, 670), 'G4': (670, 350), 'G7': (670, 30)}
+
 # Расположение фишек
 pieces = {'A1': None, 'A4': None, 'A7': None,
           'B2': None, 'B4': None, 'B6': None,
@@ -67,6 +76,26 @@ pieces = {'A1': None, 'A4': None, 'A7': None,
 # Переменные для хода
 selected_piece = None
 turn = 'black'
+
+
+# Функция отрисовки точек
+def draw_points():
+    for pos, (x, y) in points.items():
+        pygame.draw.circle(screen, BLACK, (x, y), 10)
+        font = pygame.font.Font(None, 24)
+        text = font.render(pos, True, BLACK)
+        text_rect = text.get_rect(center=(x, y))
+        screen.blit(text, text_rect)
+
+# Функция для отрисовки игрового поля
+def draw_board():
+    screen.blit(game_board_image, (0, 0))
+    draw_points()
+    for position, piece in pieces.items():
+        if piece == 'black':
+            screen.blit(black_piece_image, (position_to_pixel(position)))
+        elif piece == 'white':
+            screen.blit(white_piece_image, (position_to_pixel(position)))
 
 
 # Функция для проверки победы
@@ -85,22 +114,26 @@ def check_win():
     return False
 
 
-# Рисование игрового поля и фишек
-def draw_board():
-    screen.blit(game_board_image, (0, 0))
-    for position, piece in pieces.items():
-        if piece == 'black':
-            screen.blit(black_piece_image, (position_to_pixel(position)))
-        elif piece == 'white':
-            screen.blit(white_piece_image, (position_to_pixel(position)))
+
 
 
 # Преобразование позиции в координаты на экране
 def position_to_pixel(position):
     letters = 'ABCDEFG'
-    x = (letters.index(position[0]) + 1) * 100 - 25
-    y = int(position[1]) * 100 - 25
+    x = (letters.index(position[0]) - 0.4) * 100 + 25
+    y = (int(position[1]) - 1.5) * 100 + 25
     return x, y
+
+
+# Обработка кликов мыши для расстановки фишек
+def handle_player_click_human(mouse_position):
+    pixel_position = mouse_position
+    for pos, (x, y) in points.items():
+        if x - 15 < pixel_position[0] < x + 15 and y - 15 < pixel_position[1] < y + 15:
+            if pieces[pos] is None:
+                pieces[pos] = turn
+                change_turn()
+
 
 
 def computer_move():
@@ -259,15 +292,14 @@ def setup_pieces_human():
                     draw_board()
                     pygame.display.flip()
                     change_turn()
-
+                    print_board()  # Выводим текущее состояние доски
 def main_game_loop(game_mode):
-    if game_mode == 'vs_computer':
-        setup_pieces_human()  # Интерактивная расстановка фишек человеком
+    if game_mode == 'two_players':
+        setup_pieces_human()
 
     global player_turn
     running = True
 
-    # Остальной код без изменений
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -275,14 +307,18 @@ def main_game_loop(game_mode):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_position = pygame.mouse.get_pos()
                 if player_turn:
-                    handle_player_click(mouse_position)
-                    if game_mode == 'vs_computer' and player_turn:
-                        computer_move()
-                        change_turn()
+                    if game_mode == 'two_players':
+                        handle_player_click_human(mouse_position)
+                    elif game_mode == 'vs_computer':
+                        handle_player_click(mouse_position)
+                        if player_turn:
+                            computer_move()
+                            change_turn()
 
         screen.fill(WHITE)
         draw_board()
         pygame.display.flip()
+
 
         if check_win():
             print(f'Игрок {turn} выиграл!')
@@ -292,28 +328,39 @@ def main_game_loop(game_mode):
         pygame.time.Clock().tick(30)
 
 
+
 def change_turn():
     global turn
     turn = 'black' if turn == 'white' else 'white'
 
 
-running = True
-game_mode = None  # Режим игры: 'two_players' или 'vs_computer'
+def print_board():
+    for row in range(1, 8):
+        for col in 'ABCDEFG':
+            position = f"{col}{row}"
+            piece = pieces.get(position, None)
+            print(piece or '.', end=' ')
+        print()
 
-start_screen_buttons = draw_start_screen()
+# Запуск программы
+if __name__ == "__main__":
+    running = True
+    game_mode = None  # Режим игры: 'two_players' или 'vs_computer'
 
-while running and game_mode is None:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            mouse_position = pygame.mouse.get_pos()
-            game_mode = handle_start_screen_click(mouse_position, *start_screen_buttons)
+    start_screen_buttons = draw_start_screen()
 
-    pygame.display.flip()
+    while running and game_mode is None:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_position = pygame.mouse.get_pos()
+                game_mode = handle_start_screen_click(mouse_position, *start_screen_buttons)
 
-if game_mode:
-    main_game_loop(game_mode)
+        pygame.display.flip()
 
-pygame.quit()
-sys.exit()
+    if game_mode:
+        main_game_loop(game_mode)
+
+    pygame.quit()
+    sys.exit()
