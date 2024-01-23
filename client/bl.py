@@ -107,22 +107,6 @@ def draw_board():
             screen.blit(white_piece_image, (position_to_pixel(position)))
 
 
-# Функция для проверки победы
-def check_win():
-    lines = [
-        ('A1', 'A4', 'A7'), ('B2', 'B4', 'B6'), ('C3', 'C4', 'C5'),
-        ('D1', 'D2', 'D3'), ('D5', 'D6', 'D7'), ('E3', 'E4', 'E5'),
-        ('F2', 'F4', 'F6'), ('G1', 'G4', 'G7'),
-        ('A1', 'D1', 'G1'), ('B2', 'D2', 'F2'), ('C3', 'D3', 'E3'),
-        ('A4', 'B4', 'C4'), ('E4', 'F4', 'G4'), ('C5', 'D5', 'E5'),
-        ('B6', 'D6', 'F6'), ('A7', 'D7', 'G7')
-    ]
-    for line in lines:
-        if pieces[line[0]] == pieces[line[1]] == pieces[line[2]] and pieces[line[0]] is not None:
-            return True
-    return False
-
-
 # Обработка кликов мыши для расстановки фишек
 def handle_player_click_human(mouse_position):
     pixel_position = mouse_position
