@@ -14,6 +14,8 @@ white_piece_image = pygame.image.load('C:/Python_Projects/Mill/static/white.png'
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 
+
+
 # Установка размеров экрана
 WIDTH, HEIGHT = game_board_image.get_width(), game_board_image.get_height()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -53,6 +55,7 @@ def handle_start_screen_click(mouse_position, two_players_button, vs_computer_bu
         return 'vs_computer'
     else:
         return None
+
 
 
 # Добавление координат точек на игровом поле
@@ -106,42 +109,54 @@ def draw_board():
         elif piece == 'white':
             screen.blit(white_piece_image, (position_to_pixel(position)))
 
+# Функция отрисовки линии мельницы
+def draw_mill_line(positions):
+    pygame.draw.line(screen, (255, 0, 0), position_to_pixel(positions[0]), position_to_pixel(positions[1]), 2)
+
 
 # Обработка кликов мыши для расстановки фишек
 def handle_player_click_human(mouse_position):
+    # Добавление счетчиков фишек для каждого игрока
+    black_pieces_count = 0
+    white_pieces_count = 0
+
     pixel_position = mouse_position
     for pos, (x, y) in points.items():
         if x - 15 < pixel_position[0] < x + 15 and y - 15 < pixel_position[1] < y + 15:
-            if pieces[pos] is None:
+            if pieces[pos] is None and (turn == 'black' and black_pieces_count < 9 or turn == 'white' and white_pieces_count < 9):
                 pieces[pos] = turn
+                if turn == 'black':
+                    black_pieces_count += 1
+                else:
+                    white_pieces_count += 1
                 change_turn()
 
 
 
-def check_mill(position):
+def get_mill_positions(position):
     # Получаем индексы строки и столбца из позиции
     row = int(position[1]) - 1
     col = ord(position[0]) - ord('A')
 
     # Горизонтальные линии
     if pieces[f'A{row + 1}'] == pieces[f'B{row + 1}'] == pieces[f'C{row + 1}']:
-        return True
+        return [f'A{row + 1}', f'B{row + 1}', f'C{row + 1}']
     elif pieces[f'D{row + 1}'] == pieces[f'E{row + 1}'] == pieces[f'F{row + 1}']:
-        return True
+        return [f'D{row + 1}', f'E{row + 1}', f'F{row + 1}']
     elif pieces[f'G{row + 1}'] == pieces[f'A{row + 1}'] == pieces[f'D{row + 1}']:
-        return True
+        return [f'G{row + 1}', f'A{row + 1}', f'D{row + 1}']
     elif pieces[f'B{row + 1}'] == pieces[f'D{row + 1}'] == pieces[f'F{row + 1}']:
-        return True
+        return [f'B{row + 1}', f'D{row + 1}', f'F{row + 1}']
 
     # Вертикальные линии
     if pieces[f'{chr(col + ord("A"))}1'] == pieces[f'{chr(col + ord("A"))}2'] == pieces[f'{chr(col + ord("A"))}3']:
-        return True
+        return [f'{chr(col + ord("A"))}1', f'{chr(col + ord("A"))}2', f'{chr(col + ord("A"))}3']
     elif pieces[f'{chr(col + ord("A"))}4'] == pieces[f'{chr(col + ord("A"))}5'] == pieces[f'{chr(col + ord("A"))}6']:
-        return True
+        return [f'{chr(col + ord("A"))}4', f'{chr(col + ord("A"))}5', f'{chr(col + ord("A"))}6']
     elif pieces[f'{chr(col + ord("A"))}7'] == pieces[f'{chr(col + ord("A"))}4'] == pieces[f'{chr(col + ord("A"))}1']:
-        return True
+        return [f'{chr(col + ord("A"))}7', f'{chr(col + ord("A"))}4', f'{chr(col + ord("A"))}1']
 
-    return False
+    return []
 
 
 def is_valid_move(start, end):
@@ -201,7 +216,7 @@ def handle_click(pixel_position):
                     pieces[selected_piece] = None
                     pieces[position] = turn
                     selected_piece = None
-                    if not check_mill(position):
+                    if not get_mill_positions(position):
                         change_turn()
                         # После каждого хода проверяем, возможно удаление фишек противника
                         remove_opponent_piece()
@@ -216,21 +231,30 @@ def handle_click(pixel_position):
             pieces[selected_piece] = None
             pieces[position] = turn
             selected_piece = None
-            if not check_mill(position):
+            if not get_mill_positions(position):
                 change_turn()
                 remove_opponent_piece()
 
+
+# Проверка мельницы и удаление фишек противника
 def remove_opponent_piece():
-    # После каждого хода проверяем, возможно удаление фишек противника
     for pos, piece in pieces.items():
-        if piece != turn and check_mill(pos):
-            # Если у противника создана мельница, удаляем одну фишку
+        if piece != turn and get_mill_positions(pos):
+            # Определяем координаты фишек мельницы
+            mill_positions = [position_to_pixel(position) for pos in [pos[0] for pos in get_mill_positions(pos)]]
+
+            # Отрисовываем линии мельницы
+            draw_mill_line(mill_positions)
+
+            # Удаляем одну фишку противника
             remove_piece(pos)
             return
 
-def remove_piece(position):
+def remove_piece(pos):
     # Удаляем фишку противника
-    pieces[position] = None
+    pieces[pos] = None
+    draw_board()  # Обновляем доску после удаления фишки
+    pygame.display.flip()  # Обновляем экран
 
 
 def setup_pieces_human():
