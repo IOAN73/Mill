@@ -35,6 +35,7 @@ class Game(BaseModel):
     def set_trick(self, trick: Trick, is_move: bool = False):
         if self.turn != trick.color:
             raise TurnError
+        self._check_position_is_free(trick.position)
         match trick.color:
             case Color.white:
                 if not is_move:
@@ -46,7 +47,6 @@ class Game(BaseModel):
                     if self.black_free_tricks_count < 1:
                         raise TrickNotFound
                     self.black_free_tricks_count -= 1
-        self._check_position_is_free(trick.position)
         self.turn = ~trick.color
         self.tricks.append(trick)
 
