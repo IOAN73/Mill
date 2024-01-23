@@ -87,6 +87,7 @@ def draw_points():
         text_rect = text.get_rect(center=(x, y))
         screen.blit(text, text_rect)
 
+
 # Функция для отрисовки игрового поля
 def draw_board():
     screen.blit(game_board_image, (0, 0))
@@ -114,9 +115,6 @@ def check_win():
     return False
 
 
-
-
-
 # Преобразование позиции в координаты на экране
 def position_to_pixel(position):
     letters = 'ABCDEFG'
@@ -135,7 +133,6 @@ def handle_player_click_human(mouse_position):
                 change_turn()
 
 
-
 def computer_move():
     global turn
     if turn == 'white':  # Ход белых фишек (компьютер)
@@ -143,6 +140,7 @@ def computer_move():
         position = random.choice(available_positions)
         pieces[position] = 'white'
         turn = 'black'
+
 
 def handle_player_click(mouse_position):
     pixel_position = mouse_position
@@ -252,7 +250,6 @@ def handle_click(pixel_position):
                 change_turn()
 
 
-
 def handle_game_events():
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -264,8 +261,6 @@ def handle_game_events():
             else:  # Если ход компьютера
                 # Возможно, здесь потребуется обработка кликов для отображения, что сейчас ходит компьютер
                 pass
-
-
 
 
 def setup_pieces_human():
@@ -293,6 +288,8 @@ def setup_pieces_human():
                     pygame.display.flip()
                     change_turn()
                     print_board()  # Выводим текущее состояние доски
+
+
 def main_game_loop(game_mode):
     if game_mode == 'two_players':
         setup_pieces_human()
@@ -319,14 +316,12 @@ def main_game_loop(game_mode):
         draw_board()
         pygame.display.flip()
 
-
         if check_win():
             print(f'Игрок {turn} выиграл!')
             pygame.time.delay(2000)
             running = False
 
         pygame.time.Clock().tick(30)
-
 
 
 def change_turn():
@@ -341,6 +336,7 @@ def print_board():
             piece = pieces.get(position, None)
             print(piece or '.', end=' ')
         print()
+
 
 # Запуск программы
 if __name__ == "__main__":
