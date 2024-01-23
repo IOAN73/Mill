@@ -6,9 +6,9 @@ import random
 pygame.init()
 
 # Загрузка изображений
-game_board_image = pygame.image.load('static/pole.jpg')
-black_piece_image = pygame.image.load('static/black.png')
-white_piece_image = pygame.image.load('static/white.png')
+game_board_image = pygame.image.load('C:/Python_Projects/Mill/static/pole.jpg')
+black_piece_image = pygame.image.load('C:/Python_Projects/Mill/static/black.png')
+white_piece_image = pygame.image.load('C:/Python_Projects/Mill/static/white.png')
 
 # Определение цветов
 BLACK = (0, 0, 0)
@@ -88,6 +88,14 @@ def draw_points():
         screen.blit(text, text_rect)
 
 
+# Преобразование позиции в координаты на экране
+def position_to_pixel(position):
+    letters = 'ABCDEFG'
+    x = (letters.index(position[0]) - 0.4) * 100 + 25
+    y = (int(position[1]) - 1.5) * 100 + 25
+    return x, y
+
+
 # Функция для отрисовки игрового поля
 def draw_board():
     screen.blit(game_board_image, (0, 0))
@@ -115,14 +123,6 @@ def check_win():
     return False
 
 
-# Преобразование позиции в координаты на экране
-def position_to_pixel(position):
-    letters = 'ABCDEFG'
-    x = (letters.index(position[0]) - 0.4) * 100 + 25
-    y = (int(position[1]) - 1.5) * 100 + 25
-    return x, y
-
-
 # Обработка кликов мыши для расстановки фишек
 def handle_player_click_human(mouse_position):
     pixel_position = mouse_position
@@ -132,22 +132,6 @@ def handle_player_click_human(mouse_position):
                 pieces[pos] = turn
                 change_turn()
 
-
-def computer_move():
-    global turn
-    if turn == 'white':  # Ход белых фишек (компьютер)
-        available_positions = [pos for pos, piece in pieces.items() if piece is None]
-        position = random.choice(available_positions)
-        pieces[position] = 'white'
-        turn = 'black'
-
-
-def handle_player_click(mouse_position):
-    pixel_position = mouse_position
-    x, y = pixel_position
-    letters = 'ABCDEFG'
-    position = letters[x // 100] + str(y // 100 + 1)
-    handle_click(pixel_position)
 
 
 def check_mill(position):
@@ -226,41 +210,43 @@ def handle_click(pixel_position):
     position = letters[x // 100] + str(y // 100 + 1)
     piece = pieces[position]
 
-    if piece == turn:  # Проверяем, что выбранная фишка принадлежит текущему игроку
+    if piece == turn:
         if selected_piece and selected_piece != position:
-            if pieces[position] is None:  # Попытка сделать ход
+            if pieces[position] is None:
                 if is_valid_move(selected_piece, position):
                     pieces[selected_piece] = None
                     pieces[position] = turn
                     selected_piece = None
-                    if not check_mill(position):  # Если был создан мельница, игрок должен убрать фишку соперника
+                    if not check_mill(position):
                         change_turn()
-            else:  # Выбор другой фишки
+                        # После каждого хода проверяем, возможно удаление фишек противника
+                        remove_opponent_piece()
+            else:
                 selected_piece = position
         elif selected_piece == position:
             selected_piece = None
-        else:  # Выбор фишки
+        else:
             selected_piece = position
-    elif selected_piece and pieces[selected_piece] == turn and piece is None:  # Попытка переместить фишку
+    elif selected_piece and pieces[selected_piece] == turn and piece is None:
         if is_valid_move(selected_piece, position):
             pieces[selected_piece] = None
             pieces[position] = turn
             selected_piece = None
-            if not check_mill(position):  # Если был создана мельница, игрок должен убрать фишку соперника
+            if not check_mill(position):
                 change_turn()
+                remove_opponent_piece()
 
+def remove_opponent_piece():
+    # После каждого хода проверяем, возможно удаление фишек противника
+    for pos, piece in pieces.items():
+        if piece != turn and check_mill(pos):
+            # Если у противника создана мельница, удаляем одну фишку
+            remove_piece(pos)
+            return
 
-def handle_game_events():
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            mouse_position = pygame.mouse.get_pos()
-            if player_turn:  # Если ход игрока
-                handle_player_click(mouse_position)  # Функция для обработки клика игрока
-            else:  # Если ход компьютера
-                # Возможно, здесь потребуется обработка кликов для отображения, что сейчас ходит компьютер
-                pass
+def remove_piece(position):
+    # Удаляем фишку противника
+    pieces[position] = None
 
 
 def setup_pieces_human():
@@ -293,36 +279,10 @@ def setup_pieces_human():
 def main_game_loop(game_mode):
     if game_mode == 'two_players':
         setup_pieces_human()
+    elif game_mode == 'vs_computer':
+        pass
 
     global player_turn
-    running = True
-
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                mouse_position = pygame.mouse.get_pos()
-                if player_turn:
-                    if game_mode == 'two_players':
-                        handle_player_click_human(mouse_position)
-                    elif game_mode == 'vs_computer':
-                        handle_player_click(mouse_position)
-                        if player_turn:
-                            computer_move()
-                            change_turn()
-
-        screen.fill(WHITE)
-        draw_board()
-        pygame.display.flip()
-
-        if check_win():
-            print(f'Игрок {turn} выиграл!')
-            pygame.time.delay(2000)
-            running = False
-
-        pygame.time.Clock().tick(30)
-
 
 def change_turn():
     global turn
