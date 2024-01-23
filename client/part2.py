@@ -6,9 +6,9 @@ import random
 pygame.init()
 
 # Загрузка изображений
-game_board_image = pygame.image.load('static/pole.jpg')
-black_piece_image = pygame.image.load('static/black.png')
-white_piece_image = pygame.image.load('static/white.png')
+game_board_image = pygame.image.load('../static/pole.jpg')
+black_piece_image = pygame.image.load('../static/black.png')
+white_piece_image = pygame.image.load('../static/white.png')
 
 # Определение цветов
 BLACK = (0, 0, 0)
