@@ -2,11 +2,14 @@ import pygame
 import sys
 import random
 from pathlib import Path
+from client.client import get_game, set_trick
+from server.schemas import Trick, Color
 
 CWD = Path.cwd()
 GAME_BOARD_IMAGE_PATH = CWD / 'static' /'pole.jpg'
 BLACK_PIECE_IMAGE_PATH = CWD / 'static' / 'black.png'
 WHITE_PIECE_IMAGE_PATH = CWD / 'static' / 'white.png'
+
 
 # Инициализация Pygame
 pygame.init()
@@ -50,6 +53,7 @@ def draw_start_screen():
 
     return two_players_button, vs_computer_button
 
+turn = 'black'
 
 # Функция для обработки начального экрана
 def handle_start_screen_click(mouse_position, two_players_button, vs_computer_button):
@@ -79,9 +83,11 @@ pieces = {'A1': None, 'A4': None, 'A7': None,
           'F2': None, 'F4': None, 'F6': None,
           'G1': None, 'G4': None, 'G7': None}
 
-# Переменные для хода
-selected_piece = None
-turn = 'black'
+# Расположение фишек black
+black_pieces = {}
+
+# Расположение фишек white
+white_pieces = {}
 
 
 # Функция отрисовки точек
@@ -113,146 +119,66 @@ def draw_board():
             screen.blit(white_piece_image, (position_to_pixel(position)))
 
 
-# Функция для проверки победы
-def check_win():
-    lines = [
-        ('A1', 'A4', 'A7'), ('B2', 'B4', 'B6'), ('C3', 'C4', 'C5'),
-        ('D1', 'D2', 'D3'), ('D5', 'D6', 'D7'), ('E3', 'E4', 'E5'),
-        ('F2', 'F4', 'F6'), ('G1', 'G4', 'G7'),
-        ('A1', 'D1', 'G1'), ('B2', 'D2', 'F2'), ('C3', 'D3', 'E3'),
-        ('A4', 'B4', 'C4'), ('E4', 'F4', 'G4'), ('C5', 'D5', 'E5'),
-        ('B6', 'D6', 'F6'), ('A7', 'D7', 'G7')
-    ]
-    for line in lines:
-        if pieces[line[0]] == pieces[line[1]] == pieces[line[2]] and pieces[line[0]] is not None:
-            return True
-    return False
+# Функция отрисовки линии мельницы
+def draw_mill_line(positions):
+    pygame.draw.line(screen, (255, 0, 0), position_to_pixel(positions[0]), position_to_pixel(positions[1]), 2)
 
 
 # Обработка кликов мыши для расстановки фишек
 def handle_player_click_human(mouse_position):
+    global black_pieces, white_pieces
+    # Добавление счетчиков фишек для каждого игрока
+    black_pieces_count = 0
+    white_pieces_count = 0
+
     pixel_position = mouse_position
     for pos, (x, y) in points.items():
-        if x - 15 < pixel_position[0] < x + 15 and y - 15 < pixel_position[1] < y + 15:
-            if pieces[pos] is None:
-                pieces[pos] = turn
-                change_turn()
+        rect = pygame.Rect(x - 35, y - 35, 70, 70)
+        if rect.collidepoint(pixel_position) and pieces[pos] is None:
+            pieces[pos] = turn
+            x, y = position_to_pixel(pos)
+            if turn == 'black':
+                black_pieces[pos] = (x // 100 + 1, y // 100 + 1)
+                black_pieces_count += 1
+                # trick = Trick(color=Color.black, position=pos)
+            else:
+                white_pieces[pos] = (x // 100 + 1, y // 100 + 1)
+                white_pieces_count += 1
+                # trick = Trick(color=Color.white, position=pos)
+            change_turn()
+            # set_trick(trick)
+            draw_board()
+            pygame.display.flip()
+
+    # Выводим словари после каждого хода
+    print("Black Pieces:", black_pieces)
+    print("White Pieces:", white_pieces)
 
 
-
-def check_mill(position):
+def get_mill_positions(position):
     # Получаем индексы строки и столбца из позиции
     row = int(position[1]) - 1
     col = ord(position[0]) - ord('A')
 
     # Горизонтальные линии
     if pieces[f'A{row + 1}'] == pieces[f'B{row + 1}'] == pieces[f'C{row + 1}']:
-        return True
+        return [f'A{row + 1}', f'B{row + 1}', f'C{row + 1}']
     elif pieces[f'D{row + 1}'] == pieces[f'E{row + 1}'] == pieces[f'F{row + 1}']:
-        return True
+        return [f'D{row + 1}', f'E{row + 1}', f'F{row + 1}']
     elif pieces[f'G{row + 1}'] == pieces[f'A{row + 1}'] == pieces[f'D{row + 1}']:
-        return True
+        return [f'G{row + 1}', f'A{row + 1}', f'D{row + 1}']
     elif pieces[f'B{row + 1}'] == pieces[f'D{row + 1}'] == pieces[f'F{row + 1}']:
-        return True
+        return [f'B{row + 1}', f'D{row + 1}', f'F{row + 1}']
 
     # Вертикальные линии
     if pieces[f'{chr(col + ord("A"))}1'] == pieces[f'{chr(col + ord("A"))}2'] == pieces[f'{chr(col + ord("A"))}3']:
-        return True
+        return [f'{chr(col + ord("A"))}1', f'{chr(col + ord("A"))}2', f'{chr(col + ord("A"))}3']
     elif pieces[f'{chr(col + ord("A"))}4'] == pieces[f'{chr(col + ord("A"))}5'] == pieces[f'{chr(col + ord("A"))}6']:
-        return True
+        return [f'{chr(col + ord("A"))}4', f'{chr(col + ord("A"))}5', f'{chr(col + ord("A"))}6']
     elif pieces[f'{chr(col + ord("A"))}7'] == pieces[f'{chr(col + ord("A"))}4'] == pieces[f'{chr(col + ord("A"))}1']:
-        return True
+        return [f'{chr(col + ord("A"))}7', f'{chr(col + ord("A"))}4', f'{chr(col + ord("A"))}1']
 
-    return False
-
-
-def is_valid_move(start, end):
-    # Получаем индексы строки и столбца из начальной и конечной позиции
-    start_row = int(start[1]) - 1
-    start_col = ord(start[0]) - ord('A')
-    end_row = int(end[1]) - 1
-    end_col = ord(end[0]) - ord('A')
-
-    # Проверка допустимости хода (возможно, вам потребуется адаптировать эту логику под вашу игру)
-    if pieces[start] == turn and pieces[end] is None:
-        # Перемещение на соседнюю клетку
-        if abs(start_row - end_row) + abs(start_col - end_col) == 1:
-            return True
-        # Перемещение на клетку по диагонали
-        elif abs(start_row - end_row) == 1 and abs(start_col - end_col) == 1:
-            return True
-        # Если фишка принадлежит текущему игроку, можно "прыгнуть" через соседнюю фишку
-        elif pieces[start] == turn and pieces[end] is None and jump_over_adjacent(start, end):
-            return True
-
-    return False
-
-
-def jump_over_adjacent(start, end):
-    # Проверка, можно ли "прыгнуть" через соседнюю фишку
-    start_row = int(start[1]) - 1
-    start_col = ord(start[0]) - ord('A')
-    end_row = int(end[1]) - 1
-    end_col = ord(end[0]) - ord('A')
-
-    # Проверка, что начальная и конечная клетки соседние
-    if abs(start_row - end_row) + abs(start_col - end_col) != 2:
-        return False
-
-    # Определение координат соседней клетки
-    adjacent_row = (start_row + end_row) // 2
-    adjacent_col = (start_col + end_col) // 2
-    adjacent_position = f'{chr(adjacent_col + ord("A"))}{adjacent_row + 1}'
-
-    # Проверка, что соседняя клетка занята фишкой
-    return pieces[adjacent_position] and pieces[adjacent_position] != turn
-
-
-# Обработка кликов мыши
-def handle_click(pixel_position):
-    global selected_piece, turn
-    x, y = pixel_position
-    letters = 'ABCDEFG'
-    position = letters[x // 100] + str(y // 100 + 1)
-    piece = pieces[position]
-
-    if piece == turn:
-        if selected_piece and selected_piece != position:
-            if pieces[position] is None:
-                if is_valid_move(selected_piece, position):
-                    pieces[selected_piece] = None
-                    pieces[position] = turn
-                    selected_piece = None
-                    if not check_mill(position):
-                        change_turn()
-                        # После каждого хода проверяем, возможно удаление фишек противника
-                        remove_opponent_piece()
-            else:
-                selected_piece = position
-        elif selected_piece == position:
-            selected_piece = None
-        else:
-            selected_piece = position
-    elif selected_piece and pieces[selected_piece] == turn and piece is None:
-        if is_valid_move(selected_piece, position):
-            pieces[selected_piece] = None
-            pieces[position] = turn
-            selected_piece = None
-            if not check_mill(position):
-                change_turn()
-                remove_opponent_piece()
-
-def remove_opponent_piece():
-    # После каждого хода проверяем, возможно удаление фишек противника
-    for pos, piece in pieces.items():
-        if piece != turn and check_mill(pos):
-            # Если у противника создана мельница, удаляем одну фишку
-            remove_piece(pos)
-            return
-
-def remove_piece(position):
-    # Удаляем фишку противника
-    pieces[position] = None
+    return []
 
 
 def setup_pieces_human():
@@ -270,16 +196,10 @@ def setup_pieces_human():
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_position = pygame.mouse.get_pos()
-                pixel_position = mouse_position
-                x, y = pixel_position
-                letters = 'ABCDEFG'
-                position = letters[x // 100] + str(y // 100 + 1)
-                if pieces[position] is None:
-                    pieces[position] = turn
-                    draw_board()
-                    pygame.display.flip()
-                    change_turn()
-                    print_board()  # Выводим текущее состояние доски
+                handle_player_click_human(mouse_position)
+
+                # Выводим текущее состояние доски
+                print_board()
 
 
 def main_game_loop(game_mode):
@@ -289,6 +209,27 @@ def main_game_loop(game_mode):
         pass
 
     global player_turn
+
+    # Выводим словари перед игровым циклом
+    print("Initial Black Pieces:", black_pieces)
+    print("Initial White Pieces:", white_pieces)
+
+    while any(piece is None for piece in pieces.values()):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_position = pygame.mouse.get_pos()
+                handle_player_click_human(mouse_position)
+
+                # Выводим текущее состояние доски
+                print_board()
+
+    # Выводим словари после завершения игры
+    print("Final Black Pieces:", black_pieces)
+    print("Final White Pieces:", white_pieces)
+
 
 def change_turn():
     global turn
