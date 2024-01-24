@@ -1,14 +1,20 @@
 import pygame
 import sys
 import random
+from pathlib import Path
+
+CWD = Path.cwd()
+GAME_BOARD_IMAGE_PATH = CWD / 'static' /'pole.jpg'
+BLACK_PIECE_IMAGE_PATH = CWD / 'static' / 'black.png'
+WHITE_PIECE_IMAGE_PATH = CWD / 'static' / 'white.png'
 
 # Инициализация Pygame
 pygame.init()
 
 # Загрузка изображений
-game_board_image = pygame.image.load('C:/Python_Projects/Mill/static/pole.jpg')
-black_piece_image = pygame.image.load('C:/Python_Projects/Mill/static/black.png')
-white_piece_image = pygame.image.load('C:/Python_Projects/Mill/static/white.png')
+game_board_image = pygame.image.load(GAME_BOARD_IMAGE_PATH)
+black_piece_image = pygame.image.load(BLACK_PIECE_IMAGE_PATH)
+white_piece_image = pygame.image.load(WHITE_PIECE_IMAGE_PATH)
 
 # Определение цветов
 BLACK = (0, 0, 0)
