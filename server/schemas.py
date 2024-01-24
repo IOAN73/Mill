@@ -17,6 +17,7 @@ class Color(StrEnum):
             case self.white:
                 return self.black
 
+
 Position: TypeAlias = tuple[int, int]
 
 

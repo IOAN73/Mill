@@ -1,15 +1,16 @@
+import click
 import pygame
 import sys
 import random
 from pathlib import Path
-from client.client import get_game, set_trick
+from client.server_client import get_game, set_trick
 from server.schemas import Trick, Color
 
 CWD = Path.cwd()
-GAME_BOARD_IMAGE_PATH = CWD / 'static' /'pole.jpg'
+
+GAME_BOARD_IMAGE_PATH = CWD / 'static' / 'pole.jpg'
 BLACK_PIECE_IMAGE_PATH = CWD / 'static' / 'black.png'
 WHITE_PIECE_IMAGE_PATH = CWD / 'static' / 'white.png'
-
 
 # Инициализация Pygame
 pygame.init()
@@ -53,10 +54,13 @@ def draw_start_screen():
 
     return two_players_button, vs_computer_button
 
+
 turn = 'black'
 
+
 # Функция для обработки начального экрана
-def handle_start_screen_click(mouse_position, two_players_button, vs_computer_button):
+def handle_start_screen_click(mouse_position, two_players_button,
+                              vs_computer_button):
     if two_players_button.collidepoint(mouse_position):
         return 'two_players'
     elif vs_computer_button.collidepoint(mouse_position):
@@ -69,7 +73,8 @@ def handle_start_screen_click(mouse_position, two_players_button, vs_computer_bu
 points = {'A1': (30, 670), 'A4': (30, 350), 'A7': (30, 30),
           'B2': (135, 560), 'B4': (135, 350), 'B6': (135, 140),
           'C3': (240, 450), 'C4': (240, 350), 'C5': (240, 240),
-          'D1': (350, 670), 'D2': (350, 560), 'D3': (350, 450), 'D5': (350, 240), 'D6': (350, 140), 'D7': (350, 30),
+          'D1': (350, 670), 'D2': (350, 560), 'D3': (350, 450),
+          'D5': (350, 240), 'D6': (350, 140), 'D7': (350, 30),
           'E3': (450, 450), 'E4': (450, 350), 'E5': (450, 240),
           'F2': (560, 560), 'F4': (560, 350), 'F6': (560, 140),
           'G1': (670, 670), 'G4': (670, 350), 'G7': (670, 30)}
@@ -78,7 +83,8 @@ points = {'A1': (30, 670), 'A4': (30, 350), 'A7': (30, 30),
 pieces = {'A1': None, 'A4': None, 'A7': None,
           'B2': None, 'B4': None, 'B6': None,
           'C3': None, 'C4': None, 'C5': None,
-          'D1': None, 'D2': None, 'D3': None, 'D5': None, 'D6': None, 'D7': None,
+          'D1': None, 'D2': None, 'D3': None, 'D5': None, 'D6': None,
+          'D7': None,
           'E3': None, 'E4': None, 'E5': None,
           'F2': None, 'F4': None, 'F6': None,
           'G1': None, 'G4': None, 'G7': None}
@@ -121,7 +127,8 @@ def draw_board():
 
 # Функция отрисовки линии мельницы
 def draw_mill_line(positions):
-    pygame.draw.line(screen, (255, 0, 0), position_to_pixel(positions[0]), position_to_pixel(positions[1]), 2)
+    pygame.draw.line(screen, (255, 0, 0), position_to_pixel(positions[0]),
+                     position_to_pixel(positions[1]), 2)
 
 
 # Обработка кликов мыши для расстановки фишек
@@ -163,20 +170,29 @@ def get_mill_positions(position):
     # Горизонтальные линии
     if pieces[f'A{row + 1}'] == pieces[f'B{row + 1}'] == pieces[f'C{row + 1}']:
         return [f'A{row + 1}', f'B{row + 1}', f'C{row + 1}']
-    elif pieces[f'D{row + 1}'] == pieces[f'E{row + 1}'] == pieces[f'F{row + 1}']:
+    elif pieces[f'D{row + 1}'] == pieces[f'E{row + 1}'] == pieces[
+        f'F{row + 1}']:
         return [f'D{row + 1}', f'E{row + 1}', f'F{row + 1}']
-    elif pieces[f'G{row + 1}'] == pieces[f'A{row + 1}'] == pieces[f'D{row + 1}']:
+    elif pieces[f'G{row + 1}'] == pieces[f'A{row + 1}'] == pieces[
+        f'D{row + 1}']:
         return [f'G{row + 1}', f'A{row + 1}', f'D{row + 1}']
-    elif pieces[f'B{row + 1}'] == pieces[f'D{row + 1}'] == pieces[f'F{row + 1}']:
+    elif pieces[f'B{row + 1}'] == pieces[f'D{row + 1}'] == pieces[
+        f'F{row + 1}']:
         return [f'B{row + 1}', f'D{row + 1}', f'F{row + 1}']
 
     # Вертикальные линии
-    if pieces[f'{chr(col + ord("A"))}1'] == pieces[f'{chr(col + ord("A"))}2'] == pieces[f'{chr(col + ord("A"))}3']:
-        return [f'{chr(col + ord("A"))}1', f'{chr(col + ord("A"))}2', f'{chr(col + ord("A"))}3']
-    elif pieces[f'{chr(col + ord("A"))}4'] == pieces[f'{chr(col + ord("A"))}5'] == pieces[f'{chr(col + ord("A"))}6']:
-        return [f'{chr(col + ord("A"))}4', f'{chr(col + ord("A"))}5', f'{chr(col + ord("A"))}6']
-    elif pieces[f'{chr(col + ord("A"))}7'] == pieces[f'{chr(col + ord("A"))}4'] == pieces[f'{chr(col + ord("A"))}1']:
-        return [f'{chr(col + ord("A"))}7', f'{chr(col + ord("A"))}4', f'{chr(col + ord("A"))}1']
+    if pieces[f'{chr(col + ord("A"))}1'] == pieces[
+        f'{chr(col + ord("A"))}2'] == pieces[f'{chr(col + ord("A"))}3']:
+        return [f'{chr(col + ord("A"))}1', f'{chr(col + ord("A"))}2',
+                f'{chr(col + ord("A"))}3']
+    elif pieces[f'{chr(col + ord("A"))}4'] == pieces[
+        f'{chr(col + ord("A"))}5'] == pieces[f'{chr(col + ord("A"))}6']:
+        return [f'{chr(col + ord("A"))}4', f'{chr(col + ord("A"))}5',
+                f'{chr(col + ord("A"))}6']
+    elif pieces[f'{chr(col + ord("A"))}7'] == pieces[
+        f'{chr(col + ord("A"))}4'] == pieces[f'{chr(col + ord("A"))}1']:
+        return [f'{chr(col + ord("A"))}7', f'{chr(col + ord("A"))}4',
+                f'{chr(col + ord("A"))}1']
 
     return []
 
@@ -245,9 +261,11 @@ def print_board():
         print()
 
 
-# Запуск программы
-if __name__ == "__main__":
+@click.command()
+@click.argument('color')
+def main(color):
     running = True
+    print(color)
     game_mode = None  # Режим игры: 'two_players' или 'vs_computer'
 
     start_screen_buttons = draw_start_screen()
@@ -258,7 +276,8 @@ if __name__ == "__main__":
                 running = False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_position = pygame.mouse.get_pos()
-                game_mode = handle_start_screen_click(mouse_position, *start_screen_buttons)
+                game_mode = handle_start_screen_click(mouse_position,
+                                                      *start_screen_buttons)
 
         pygame.display.flip()
 
@@ -267,3 +286,7 @@ if __name__ == "__main__":
 
     pygame.quit()
     sys.exit()
+
+
+if __name__ == "__main__":
+    main()
