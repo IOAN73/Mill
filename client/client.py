@@ -14,7 +14,7 @@ def get_game() -> Game:
 def set_trick(trick: Trick):
     """Установить фишку на поле."""
     with Client() as client:
-        client.post(url=URL, json=trick.model_dump_json())
+        client.post(url=URL, json=trick.model_dump())
 
 
 if __name__ == '__main__':
