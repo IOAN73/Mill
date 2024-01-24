@@ -140,13 +140,13 @@ def handle_player_click_human(mouse_position):
             if turn == 'black':
                 black_pieces[pos] = (x // 100 + 1, y // 100 + 1)
                 black_pieces_count += 1
-                # trick = Trick(color=Color.black, position=pos)
+                trick = Trick(color=Color.black, position=black_pieces[pos])
             else:
                 white_pieces[pos] = (x // 100 + 1, y // 100 + 1)
                 white_pieces_count += 1
-                # trick = Trick(color=Color.white, position=pos)
+                trick = Trick(color=Color.white, position=white_pieces[pos])
             change_turn()
-            # set_trick(trick)
+            set_trick(trick)
             draw_board()
             pygame.display.flip()
 
