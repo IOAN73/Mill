@@ -3,7 +3,7 @@ import pygame
 import sys
 import random
 from pathlib import Path
-from client.server_client import get_game, set_trick
+from client.server_client import GameClient
 from server.schemas import Trick, Color
 
 CWD = Path.cwd()
@@ -14,6 +14,7 @@ WHITE_PIECE_IMAGE_PATH = CWD / 'static' / 'white.png'
 
 # Инициализация Pygame
 pygame.init()
+client = GameClient()
 
 # Загрузка изображений
 game_board_image = pygame.image.load(GAME_BOARD_IMAGE_PATH)
@@ -59,8 +60,11 @@ turn = 'black'
 
 
 # Функция для обработки начального экрана
-def handle_start_screen_click(mouse_position, two_players_button,
-                              vs_computer_button):
+def handle_start_screen_click(
+        mouse_position,
+        two_players_button,
+        vs_computer_button,
+):
     if two_players_button.collidepoint(mouse_position):
         return 'two_players'
     elif vs_computer_button.collidepoint(mouse_position):
@@ -153,7 +157,7 @@ def handle_player_click_human(mouse_position):
                 white_pieces_count += 1
                 trick = Trick(color=Color.white, position=white_pieces[pos])
             change_turn()
-            set_trick(trick)
+            client.set_trick(trick)
             draw_board()
             pygame.display.flip()
 
