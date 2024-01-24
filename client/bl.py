@@ -1,6 +1,7 @@
 import pygame
 import sys
-import random
+from client.client import get_game, set_trick
+from server.schemas import Trick, Color
 
 # Инициализация Pygame
 pygame.init()
@@ -76,6 +77,24 @@ pieces = {'A1': None, 'A4': None, 'A7': None,
           'F2': None, 'F4': None, 'F6': None,
           'G1': None, 'G4': None, 'G7': None}
 
+# Расположение фишек black
+black_pieces = {'A1': None, 'A4': None, 'A7': None,
+          'B2': None, 'B4': None, 'B6': None,
+          'C3': None, 'C4': None, 'C5': None,
+          'D1': None, 'D2': None, 'D3': None, 'D5': None, 'D6': None, 'D7': None,
+          'E3': None, 'E4': None, 'E5': None,
+          'F2': None, 'F4': None, 'F6': None,
+          'G1': None, 'G4': None, 'G7': None}
+
+# Расположение фишек white
+white_pieces = {'A1': None, 'A4': None, 'A7': None,
+          'B2': None, 'B4': None, 'B6': None,
+          'C3': None, 'C4': None, 'C5': None,
+          'D1': None, 'D2': None, 'D3': None, 'D5': None, 'D6': None, 'D7': None,
+          'E3': None, 'E4': None, 'E5': None,
+          'F2': None, 'F4': None, 'F6': None,
+          'G1': None, 'G4': None, 'G7': None}
+
 # Переменные для хода
 selected_piece = None
 turn = 'black'
@@ -127,9 +146,12 @@ def handle_player_click_human(mouse_position):
                 pieces[pos] = turn
                 if turn == 'black':
                     black_pieces_count += 1
+                    trick = Trick(color=Color.black, position=pieces[pos])
                 else:
                     white_pieces_count += 1
+                    trick = Trick(color=Color.white, position=pieces[pos])
                 change_turn()
+                set_trick(trick)
 
 
 
@@ -241,10 +263,10 @@ def remove_opponent_piece():
     for pos, piece in pieces.items():
         if piece != turn and get_mill_positions(pos):
             # Определяем координаты фишек мельницы
-            mill_positions = [position_to_pixel(position) for pos in [pos[0] for pos in get_mill_positions(pos)]]
+            # mill_positions = [position_to_pixel(position) for pos in [pos[0] for pos in get_mill_positions(pos)]]
 
             # Отрисовываем линии мельницы
-            draw_mill_line(mill_positions)
+            # draw_mill_line(mill_positions)
 
             # Удаляем одну фишку противника
             remove_piece(pos)
