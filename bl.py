@@ -15,8 +15,6 @@ white_piece_image = pygame.image.load('C:/Python_Projects/Mill/static/white.png'
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 
-
-
 # Установка размеров экрана
 WIDTH, HEIGHT = game_board_image.get_width(), game_board_image.get_height()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -47,6 +45,7 @@ def draw_start_screen():
 
     return two_players_button, vs_computer_button
 
+turn = 'black'
 
 # Функция для обработки начального экрана
 def handle_start_screen_click(mouse_position, two_players_button, vs_computer_button):
@@ -56,7 +55,6 @@ def handle_start_screen_click(mouse_position, two_players_button, vs_computer_bu
         return 'vs_computer'
     else:
         return None
-
 
 
 # Добавление координат точек на игровом поле
@@ -78,26 +76,10 @@ pieces = {'A1': None, 'A4': None, 'A7': None,
           'G1': None, 'G4': None, 'G7': None}
 
 # Расположение фишек black
-black_pieces = {'A1': None, 'A4': None, 'A7': None,
-          'B2': None, 'B4': None, 'B6': None,
-          'C3': None, 'C4': None, 'C5': None,
-          'D1': None, 'D2': None, 'D3': None, 'D5': None, 'D6': None, 'D7': None,
-          'E3': None, 'E4': None, 'E5': None,
-          'F2': None, 'F4': None, 'F6': None,
-          'G1': None, 'G4': None, 'G7': None}
+black_pieces = {}
 
 # Расположение фишек white
-white_pieces = {'A1': None, 'A4': None, 'A7': None,
-          'B2': None, 'B4': None, 'B6': None,
-          'C3': None, 'C4': None, 'C5': None,
-          'D1': None, 'D2': None, 'D3': None, 'D5': None, 'D6': None, 'D7': None,
-          'E3': None, 'E4': None, 'E5': None,
-          'F2': None, 'F4': None, 'F6': None,
-          'G1': None, 'G4': None, 'G7': None}
-
-# Переменные для хода
-selected_piece = None
-turn = 'black'
+white_pieces = {}
 
 
 # Функция отрисовки точек
@@ -128,6 +110,7 @@ def draw_board():
         elif piece == 'white':
             screen.blit(white_piece_image, (position_to_pixel(position)))
 
+
 # Функция отрисовки линии мельницы
 def draw_mill_line(positions):
     pygame.draw.line(screen, (255, 0, 0), position_to_pixel(positions[0]), position_to_pixel(positions[1]), 2)
@@ -135,24 +118,33 @@ def draw_mill_line(positions):
 
 # Обработка кликов мыши для расстановки фишек
 def handle_player_click_human(mouse_position):
+    global black_pieces, white_pieces
     # Добавление счетчиков фишек для каждого игрока
     black_pieces_count = 0
     white_pieces_count = 0
 
     pixel_position = mouse_position
     for pos, (x, y) in points.items():
-        if x - 15 < pixel_position[0] < x + 15 and y - 15 < pixel_position[1] < y + 15:
-            if pieces[pos] is None and (turn == 'black' and black_pieces_count < 9 or turn == 'white' and white_pieces_count < 9):
-                pieces[pos] = turn
-                if turn == 'black':
-                    black_pieces_count += 1
-                    trick = Trick(color=Color.black, position=pieces[pos])
-                else:
-                    white_pieces_count += 1
-                    trick = Trick(color=Color.white, position=pieces[pos])
-                change_turn()
-                set_trick(trick)
+        rect = pygame.Rect(x - 35, y - 35, 70, 70)
+        if rect.collidepoint(pixel_position) and pieces[pos] is None:
+            pieces[pos] = turn
+            x, y = position_to_pixel(pos)
+            if turn == 'black':
+                black_pieces[pos] = (x // 100 + 1, y // 100 + 1)
+                black_pieces_count += 1
+                # trick = Trick(color=Color.black, position=pos)
+            else:
+                white_pieces[pos] = (x // 100 + 1, y // 100 + 1)
+                white_pieces_count += 1
+                # trick = Trick(color=Color.white, position=pos)
+            change_turn()
+            # set_trick(trick)
+            draw_board()
+            pygame.display.flip()
 
+    # Выводим словари после каждого хода
+    print("Black Pieces:", black_pieces)
+    print("White Pieces:", white_pieces)
 
 
 def get_mill_positions(position):
@@ -181,7 +173,6 @@ def get_mill_positions(position):
     return []
 
 
-
 def setup_pieces_human():
     global turn, player_turn
 
@@ -197,16 +188,10 @@ def setup_pieces_human():
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_position = pygame.mouse.get_pos()
-                pixel_position = mouse_position
-                x, y = pixel_position
-                letters = 'ABCDEFG'
-                position = letters[x // 100] + str(y // 100 + 1)
-                if pieces[position] is None:
-                    pieces[position] = turn
-                    draw_board()
-                    pygame.display.flip()
-                    change_turn()
-                    # print_board()  # Выводим текущее состояние доски
+                handle_player_click_human(mouse_position)
+
+                # Выводим текущее состояние доски
+                print_board()
 
 
 def main_game_loop(game_mode):
@@ -216,6 +201,27 @@ def main_game_loop(game_mode):
         pass
 
     global player_turn
+
+    # Выводим словари перед игровым циклом
+    print("Initial Black Pieces:", black_pieces)
+    print("Initial White Pieces:", white_pieces)
+
+    while any(piece is None for piece in pieces.values()):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_position = pygame.mouse.get_pos()
+                handle_player_click_human(mouse_position)
+
+                # Выводим текущее состояние доски
+                print_board()
+
+    # Выводим словари после завершения игры
+    print("Final Black Pieces:", black_pieces)
+    print("Final White Pieces:", white_pieces)
+
 
 def change_turn():
     global turn
