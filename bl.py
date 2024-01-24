@@ -15,8 +15,6 @@ white_piece_image = pygame.image.load('C:/Python_Projects/Mill/static/white.png'
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 
-
-
 # Установка размеров экрана
 WIDTH, HEIGHT = game_board_image.get_width(), game_board_image.get_height()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -58,7 +56,6 @@ def handle_start_screen_click(mouse_position, two_players_button, vs_computer_bu
         return None
 
 
-
 # Добавление координат точек на игровом поле
 points = {'A1': (30, 670), 'A4': (30, 350), 'A7': (30, 30),
           'B2': (135, 560), 'B4': (135, 350), 'B6': (135, 140),
@@ -78,26 +75,10 @@ pieces = {'A1': None, 'A4': None, 'A7': None,
           'G1': None, 'G4': None, 'G7': None}
 
 # Расположение фишек black
-black_pieces = {'A1': None, 'A4': None, 'A7': None,
-          'B2': None, 'B4': None, 'B6': None,
-          'C3': None, 'C4': None, 'C5': None,
-          'D1': None, 'D2': None, 'D3': None, 'D5': None, 'D6': None, 'D7': None,
-          'E3': None, 'E4': None, 'E5': None,
-          'F2': None, 'F4': None, 'F6': None,
-          'G1': None, 'G4': None, 'G7': None}
+black_pieces = {}
 
 # Расположение фишек white
-white_pieces = {'A1': None, 'A4': None, 'A7': None,
-          'B2': None, 'B4': None, 'B6': None,
-          'C3': None, 'C4': None, 'C5': None,
-          'D1': None, 'D2': None, 'D3': None, 'D5': None, 'D6': None, 'D7': None,
-          'E3': None, 'E4': None, 'E5': None,
-          'F2': None, 'F4': None, 'F6': None,
-          'G1': None, 'G4': None, 'G7': None}
-
-# Переменные для хода
-selected_piece = None
-turn = 'black'
+white_pieces = {}
 
 
 # Функция отрисовки точек
@@ -112,7 +93,7 @@ def draw_points():
 
 # Преобразование позиции в координаты на экране
 def position_to_pixel(position):
-    letters = 'ABCDEFG'
+    letters = '1234567'
     x = (letters.index(position[0]) - 0.4) * 100 + 25
     y = (int(position[1]) - 1.5) * 100 + 25
     return x, y
@@ -128,6 +109,7 @@ def draw_board():
         elif piece == 'white':
             screen.blit(white_piece_image, (position_to_pixel(position)))
 
+
 # Функция отрисовки линии мельницы
 def draw_mill_line(positions):
     pygame.draw.line(screen, (255, 0, 0), position_to_pixel(positions[0]), position_to_pixel(positions[1]), 2)
@@ -135,6 +117,7 @@ def draw_mill_line(positions):
 
 # Обработка кликов мыши для расстановки фишек
 def handle_player_click_human(mouse_position):
+    global black_pieces, white_pieces
     # Добавление счетчиков фишек для каждого игрока
     black_pieces_count = 0
     white_pieces_count = 0
@@ -142,17 +125,19 @@ def handle_player_click_human(mouse_position):
     pixel_position = mouse_position
     for pos, (x, y) in points.items():
         if x - 15 < pixel_position[0] < x + 15 and y - 15 < pixel_position[1] < y + 15:
-            if pieces[pos] is None and (turn == 'black' and black_pieces_count < 9 or turn == 'white' and white_pieces_count < 9):
+            if pieces[pos] is None and (
+                    turn == 'black' and black_pieces_count < 9 or turn == 'white' and white_pieces_count < 9):
                 pieces[pos] = turn
                 if turn == 'black':
+                    black_pieces[pos] = (x // 100 + 1, y // 100 + 1)
                     black_pieces_count += 1
-                    trick = Trick(color=Color.black, position=pieces[pos])
+                    trick = Trick(color=Color.black, position=black_pieces[pos])
                 else:
+                    white_pieces[pos] = (x // 100 + 1, y // 100 + 1)
                     white_pieces_count += 1
-                    trick = Trick(color=Color.white, position=pieces[pos])
+                    trick = Trick(color=Color.white, position=white_pieces[pos])
                 change_turn()
                 set_trick(trick)
-
 
 
 def get_mill_positions(position):
@@ -181,104 +166,6 @@ def get_mill_positions(position):
     return []
 
 
-def is_valid_move(start, end):
-    # Получаем индексы строки и столбца из начальной и конечной позиции
-    start_row = int(start[1]) - 1
-    start_col = ord(start[0]) - ord('A')
-    end_row = int(end[1]) - 1
-    end_col = ord(end[0]) - ord('A')
-
-    # Проверка допустимости хода (возможно, вам потребуется адаптировать эту логику под вашу игру)
-    if pieces[start] == turn and pieces[end] is None:
-        # Перемещение на соседнюю клетку
-        if abs(start_row - end_row) + abs(start_col - end_col) == 1:
-            return True
-        # Перемещение на клетку по диагонали
-        elif abs(start_row - end_row) == 1 and abs(start_col - end_col) == 1:
-            return True
-        # Если фишка принадлежит текущему игроку, можно "прыгнуть" через соседнюю фишку
-        elif pieces[start] == turn and pieces[end] is None and jump_over_adjacent(start, end):
-            return True
-
-    return False
-
-
-def jump_over_adjacent(start, end):
-    # Проверка, можно ли "прыгнуть" через соседнюю фишку
-    start_row = int(start[1]) - 1
-    start_col = ord(start[0]) - ord('A')
-    end_row = int(end[1]) - 1
-    end_col = ord(end[0]) - ord('A')
-
-    # Проверка, что начальная и конечная клетки соседние
-    if abs(start_row - end_row) + abs(start_col - end_col) != 2:
-        return False
-
-    # Определение координат соседней клетки
-    adjacent_row = (start_row + end_row) // 2
-    adjacent_col = (start_col + end_col) // 2
-    adjacent_position = f'{chr(adjacent_col + ord("A"))}{adjacent_row + 1}'
-
-    # Проверка, что соседняя клетка занята фишкой
-    return pieces[adjacent_position] and pieces[adjacent_position] != turn
-
-
-# Обработка кликов мыши
-def handle_click(pixel_position):
-    global selected_piece, turn
-    x, y = pixel_position
-    letters = 'ABCDEFG'
-    position = letters[x // 100] + str(y // 100 + 1)
-    piece = pieces[position]
-
-    if piece == turn:
-        if selected_piece and selected_piece != position:
-            if pieces[position] is None:
-                if is_valid_move(selected_piece, position):
-                    pieces[selected_piece] = None
-                    pieces[position] = turn
-                    selected_piece = None
-                    if not get_mill_positions(position):
-                        change_turn()
-                        # После каждого хода проверяем, возможно удаление фишек противника
-                        remove_opponent_piece()
-            else:
-                selected_piece = position
-        elif selected_piece == position:
-            selected_piece = None
-        else:
-            selected_piece = position
-    elif selected_piece and pieces[selected_piece] == turn and piece is None:
-        if is_valid_move(selected_piece, position):
-            pieces[selected_piece] = None
-            pieces[position] = turn
-            selected_piece = None
-            if not get_mill_positions(position):
-                change_turn()
-                remove_opponent_piece()
-
-
-# Проверка мельницы и удаление фишек противника
-def remove_opponent_piece():
-    for pos, piece in pieces.items():
-        if piece != turn and get_mill_positions(pos):
-            # Определяем координаты фишек мельницы
-            # mill_positions = [position_to_pixel(position) for pos in [pos[0] for pos in get_mill_positions(pos)]]
-
-            # Отрисовываем линии мельницы
-            # draw_mill_line(mill_positions)
-
-            # Удаляем одну фишку противника
-            remove_piece(pos)
-            return
-
-def remove_piece(pos):
-    # Удаляем фишку противника
-    pieces[pos] = None
-    draw_board()  # Обновляем доску после удаления фишки
-    pygame.display.flip()  # Обновляем экран
-
-
 def setup_pieces_human():
     global turn, player_turn
 
@@ -303,7 +190,8 @@ def setup_pieces_human():
                     draw_board()
                     pygame.display.flip()
                     change_turn()
-                    print_board()  # Выводим текущее состояние доски
+                    print_board()
+                    print()  # Выводим текущее состояние доски
 
 
 def main_game_loop(game_mode):
@@ -313,6 +201,7 @@ def main_game_loop(game_mode):
         pass
 
     global player_turn
+
 
 def change_turn():
     global turn
