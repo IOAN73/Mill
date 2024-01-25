@@ -29,24 +29,20 @@ class Trick(BaseModel):
 class Game(BaseModel):
     turn: Color = Color.white
     tricks: list[Trick] = []
-    white_free_tricks_count: int = 9
-    black_free_tricks_count: int = 9
+    free_tricks: dict[Color, int] = {
+        Color.white: 9,
+        Color.black: 9,
+    }
+    need_remove: bool = False
 
     def set_trick(self, trick: Trick, is_move: bool = False):
-        if self.turn != trick.color:
-            raise TurnError
+        self._check_turn(trick.color)
         self._check_position_is_free(trick.position)
-        match trick.color:
-            case Color.white:
-                if not is_move:
-                    if self.white_free_tricks_count < 1:
-                        raise TrickNotFound
-                    self.white_free_tricks_count -= 1
-            case Color.black:
-                if not is_move:
-                    if self.black_free_tricks_count < 1:
-                        raise TrickNotFound
-                    self.black_free_tricks_count -= 1
+        if not is_move:
+            if self.free_tricks[trick.color] < 1:
+                raise TrickNotFound
+            self.free_tricks[trick.color] -= 1
+
         self.turn = ~trick.color
         self.tricks.append(trick)
 
@@ -55,14 +51,15 @@ class Game(BaseModel):
             from_position: Position,
             to_position: Position,
     ):
+        self._check_no_free_tricks()
+        self._check_position_is_accessible(from_position, to_position)
         self._check_position_is_free(to_position)
         trick_index = self._find_trick(from_position)
+        self._check_turn(self.tricks[trick_index].color)
         trick = self.tricks.pop(trick_index)
-        if trick.color != self.turn:
-            self.set_trick(trick)
-            raise TurnError
         trick.position = to_position
-        self.set_trick(trick)
+        self.set_trick(trick, is_move=True)
+        self.turn = ~trick.color
 
     def _find_trick(self, position: Position) -> int:
         for index, trick in enumerate(self.tricks):
@@ -73,6 +70,23 @@ class Game(BaseModel):
     def _check_position_is_free(self, position: Position):
         for placed_trick in self.tricks:
             if placed_trick.position == position:
+                raise TrickSetError
+
+    @staticmethod
+    def _check_position_is_accessible(
+            from_position: Position,
+            to_position: Position,
+    ):
+        if to_position not in desk[from_position]:
+            raise TrickSetError
+
+    def _check_turn(self, color: Color):
+        if self.turn != color:
+            raise TurnError
+
+    def _check_no_free_tricks(self):
+        for tricks_count in self.free_tricks.values():
+            if tricks_count > 0:
                 raise TrickSetError
 
 
