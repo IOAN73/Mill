@@ -32,6 +32,18 @@ async def kill_trick(position: Position):
     pass
 
 
+@app.put('/game')
+async def restart_game():
+    global game
+    game = Game()
+
+
 @app.exception_handler(GameError)
 async def game_error_handler(request: Request, error: GameError):
     raise HTTPException(status_code=400, detail=error.__doc__)
+
+
+if __name__ == '__main__':
+    from uvicorn import run
+
+    run('server.main:app')
