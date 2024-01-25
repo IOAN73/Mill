@@ -60,11 +60,7 @@ turn = 'black'
 
 
 # Функция для обработки начального экрана
-def handle_start_screen_click(
-        mouse_position,
-        two_players_button,
-        vs_computer_button,
-):
+def handle_start_screen_click(mouse_position, two_players_button, vs_computer_button,):
     if two_players_button.collidepoint(mouse_position):
         return 'two_players'
     elif vs_computer_button.collidepoint(mouse_position):
@@ -72,16 +68,48 @@ def handle_start_screen_click(
     else:
         return None
 
+def draw_select_color_screen():
+    screen.fill(WHITE)
+    font = pygame.font.Font(None, 36)
+
+    text = font.render("Выберите цвет фишки", True, BLACK)
+    text_rect = text.get_rect(center=(WIDTH / 2, HEIGHT / 4))
+    screen.blit(text, text_rect)
+
+    button_font = pygame.font.Font(None, 28)
+
+    black_player_button = pygame.Rect(WIDTH / 4, HEIGHT / 2, WIDTH / 2, 50)
+    pygame.draw.rect(screen, BLACK, black_player_button)
+    text = button_font.render("Черные фишки", True, WHITE)
+    text_rect = text.get_rect(center=black_player_button.center)
+    screen.blit(text, text_rect)
+
+    white_player_button = pygame.Rect(WIDTH / 4, HEIGHT * 3 / 4, WIDTH / 2, 50)
+    pygame.draw.rect(screen, BLACK, white_player_button)
+    text = button_font.render("Белые фишки", True, WHITE)
+    text_rect = text.get_rect(center=white_player_button.center)
+    screen.blit(text, text_rect)
+
+    return black_player_button, white_player_button
+
+def handel_select_color_screen(mouse_position, black_player_button, white_player_button,):
+    if black_player_button.collidepoint(mouse_position):
+        return 'black_player'
+    elif white_player_button.collidepoint(mouse_position):
+        return 'white_player'
+    else:
+        return None
 
 # Добавление координат точек на игровом поле
-points = {'A1': (30, 670), 'A4': (30, 350), 'A7': (30, 30),
-          'B2': (135, 560), 'B4': (135, 350), 'B6': (135, 140),
-          'C3': (240, 450), 'C4': (240, 350), 'C5': (240, 240),
-          'D1': (350, 670), 'D2': (350, 560), 'D3': (350, 450),
-          'D5': (350, 240), 'D6': (350, 140), 'D7': (350, 30),
-          'E3': (450, 450), 'E4': (450, 350), 'E5': (450, 240),
-          'F2': (560, 560), 'F4': (560, 350), 'F6': (560, 140),
-          'G1': (670, 670), 'G4': (670, 350), 'G7': (670, 30)}
+points = {'A1': (30, 30), 'A4': (30, 350), 'A7': (30, 670),
+          'B2': (135, 140), 'B4': (135, 350), 'B6': (135, 560),
+          'C3': (240, 240), 'C4': (240, 350), 'C5': (240, 450),
+          'D1': (350, 30), 'D2': (350, 140), 'D3': (350, 240),
+          'D5': (350, 450), 'D6': (350, 560), 'D7': (350, 670),
+          'E3': (450, 240), 'E4': (450, 350), 'E5': (450, 450),
+          'F2': (560, 140), 'F4': (560, 350), 'F6': (560, 560),
+          'G1': (670, 30), 'G4': (670, 350), 'G7': (670, 670),
+          }
 
 # Расположение фишек
 pieces = {'A1': None, 'A4': None, 'A7': None,
@@ -174,29 +202,20 @@ def get_mill_positions(position):
     # Горизонтальные линии
     if pieces[f'A{row + 1}'] == pieces[f'B{row + 1}'] == pieces[f'C{row + 1}']:
         return [f'A{row + 1}', f'B{row + 1}', f'C{row + 1}']
-    elif pieces[f'D{row + 1}'] == pieces[f'E{row + 1}'] == pieces[
-        f'F{row + 1}']:
+    elif pieces[f'D{row + 1}'] == pieces[f'E{row + 1}'] == pieces[f'F{row + 1}']:
         return [f'D{row + 1}', f'E{row + 1}', f'F{row + 1}']
-    elif pieces[f'G{row + 1}'] == pieces[f'A{row + 1}'] == pieces[
-        f'D{row + 1}']:
+    elif pieces[f'G{row + 1}'] == pieces[f'A{row + 1}'] == pieces[f'D{row + 1}']:
         return [f'G{row + 1}', f'A{row + 1}', f'D{row + 1}']
-    elif pieces[f'B{row + 1}'] == pieces[f'D{row + 1}'] == pieces[
-        f'F{row + 1}']:
+    elif pieces[f'B{row + 1}'] == pieces[f'D{row + 1}'] == pieces[f'F{row + 1}']:
         return [f'B{row + 1}', f'D{row + 1}', f'F{row + 1}']
 
     # Вертикальные линии
-    if pieces[f'{chr(col + ord("A"))}1'] == pieces[
-        f'{chr(col + ord("A"))}2'] == pieces[f'{chr(col + ord("A"))}3']:
-        return [f'{chr(col + ord("A"))}1', f'{chr(col + ord("A"))}2',
-                f'{chr(col + ord("A"))}3']
-    elif pieces[f'{chr(col + ord("A"))}4'] == pieces[
-        f'{chr(col + ord("A"))}5'] == pieces[f'{chr(col + ord("A"))}6']:
-        return [f'{chr(col + ord("A"))}4', f'{chr(col + ord("A"))}5',
-                f'{chr(col + ord("A"))}6']
-    elif pieces[f'{chr(col + ord("A"))}7'] == pieces[
-        f'{chr(col + ord("A"))}4'] == pieces[f'{chr(col + ord("A"))}1']:
-        return [f'{chr(col + ord("A"))}7', f'{chr(col + ord("A"))}4',
-                f'{chr(col + ord("A"))}1']
+    if pieces[f'{chr(col + ord("A"))}1'] == pieces[f'{chr(col + ord("A"))}2'] == pieces[f'{chr(col + ord("A"))}3']:
+        return [f'{chr(col + ord("A"))}1', f'{chr(col + ord("A"))}2', f'{chr(col + ord("A"))}3']
+    elif pieces[f'{chr(col + ord("A"))}4'] == pieces[f'{chr(col + ord("A"))}5'] == pieces[f'{chr(col + ord("A"))}6']:
+        return [f'{chr(col + ord("A"))}4', f'{chr(col + ord("A"))}5', f'{chr(col + ord("A"))}6']
+    elif pieces[f'{chr(col + ord("A"))}7'] == pieces[f'{chr(col + ord("A"))}4'] == pieces[f'{chr(col + ord("A"))}1']:
+        return [f'{chr(col + ord("A"))}7', f'{chr(col + ord("A"))}4', f'{chr(col + ord("A"))}1']
 
     return []
 
