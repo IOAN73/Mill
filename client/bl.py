@@ -296,9 +296,9 @@ def main_game_loop(game_mode):
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     mouse_position = pygame.mouse.get_pos()
                     color_choice = handle_select_color_screen(mouse_position, *select_color_screen_buttons)
-                    # setup_pieces_human()
                     if color_choice:
                         selecting_color = False
+                        setup_pieces_human()
             pygame.display.flip()
 
     elif game_mode == 'vs_computer':
