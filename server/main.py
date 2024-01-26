@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 
 from server.exceptions import GameError
 from server.schemas import Game, Movement, Position, Trick
@@ -28,8 +28,8 @@ async def move_trick(movement: Movement) -> None:
 
 
 @app.delete('/game')
-async def kill_trick(position: Position):
-    pass
+async def remove_trick(position: Position):
+    game.remove_trick(position)
 
 
 @app.put('/game')

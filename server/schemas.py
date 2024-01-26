@@ -1,9 +1,15 @@
+from collections import Counter
 from enum import StrEnum
 from typing import TypeAlias
 
 from pydantic import BaseModel
 
-from server.exceptions import TurnError, TrickSetError, TrickNotFound
+from server.exceptions import (
+    CantRemove,
+    TrickNotFound,
+    TrickSetError,
+    TurnError,
+)
 
 
 class Color(StrEnum):
@@ -60,6 +66,14 @@ class Game(BaseModel):
         trick.position = to_position
         self.set_trick(trick, is_move=True)
         self.turn = ~trick.color
+
+    def remove_trick(self, position: Position):
+        trick_index = self._find_trick(position)
+        if self.tricks[trick_index].color == self.turn:
+            raise TurnError
+        if not self.need_remove:
+            raise CantRemove
+        self.tricks.pop(trick_index)
 
     def _find_trick(self, position: Position) -> int:
         for index, trick in enumerate(self.tricks):
@@ -121,3 +135,25 @@ desk: dict[Position, list[Position]] = {
     (3, 6): [(0, 6), (3, 5), (6, 6)],
     (6, 6): [(3, 6), (6, 3)]
 }
+
+
+def find_potential_mills(position: Position):
+    positions = {position, *desk[position]}
+    for near_position in desk[position]:
+        positions.update(desk[near_position])
+    xs = [position[0] for position in positions]
+    ys = [position[1] for position in positions]
+    xs3 = [value for value, count in Counter(xs).items() if count == 3]
+    ys3 = [value for value, count in Counter(ys).items() if count == 3]
+    mills = []
+    for x in xs3:
+        mill = tuple(point for point in positions if point[0] == x)
+        mills.append(mill)
+    for y in ys3:
+        mill = tuple(point for point in positions if point[1] == y)
+        mills.append(mill)
+    return [mill for mill in mills if position in mill]
+
+
+if __name__ == '__main__':
+    print(find_potential_mills((3, 0)))

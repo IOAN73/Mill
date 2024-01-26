@@ -12,3 +12,7 @@ class TrickSetError(GameError):
 
 class TrickNotFound(GameError):
     """В этой позиции нет фишки."""
+
+
+class CantRemove(GameError):
+    """Сейчас нельзя удалить фишку."""
