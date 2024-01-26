@@ -49,8 +49,11 @@ class Game(BaseModel):
                 raise TrickNotFound
             self.free_tricks[trick.color] -= 1
 
-        self.turn = ~trick.color
         self.tricks.append(trick)
+        if not self._check_mills(trick):
+            self.turn = ~trick.color
+            return
+        self.need_remove = True
 
     def move_trick(
             self,
@@ -65,7 +68,6 @@ class Game(BaseModel):
         trick = self.tricks.pop(trick_index)
         trick.position = to_position
         self.set_trick(trick, is_move=True)
-        self.turn = ~trick.color
 
     def remove_trick(self, position: Position):
         trick_index = self._find_trick(position)
@@ -73,7 +75,9 @@ class Game(BaseModel):
             raise TurnError
         if not self.need_remove:
             raise CantRemove
+        self.turn = ~self.tricks[trick_index].color
         self.tricks.pop(trick_index)
+        self.need_remove = False
 
     def _find_trick(self, position: Position) -> int:
         for index, trick in enumerate(self.tricks):
@@ -102,6 +106,18 @@ class Game(BaseModel):
         for tricks_count in self.free_tricks.values():
             if tricks_count > 0:
                 raise TrickSetError
+
+    def _check_mills(self, trick: Trick):
+        potential_mills = find_potential_mills(trick.position)
+        for potential_mill in potential_mills:
+            try:
+                points = [self._find_trick(point) for point in potential_mill]
+                colors = set(self.tricks[point].color for point in points)
+                if colors.pop() == trick.color:
+                    return True
+            except TrickNotFound:
+                continue
+        return False
 
 
 class Movement(BaseModel):
@@ -156,4 +172,4 @@ def find_potential_mills(position: Position):
 
 
 if __name__ == '__main__':
-    print(find_potential_mills((3, 0)))
+    print(find_potential_mills((1, 1)))
