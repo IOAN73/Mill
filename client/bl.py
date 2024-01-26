@@ -1,9 +1,11 @@
-import click
-import pygame
 import sys
 from pathlib import Path
+
+import click
+import pygame
+
 from client.server_client import GameClient
-from server.schemas import Trick, Color
+from server.schemas import Color, Trick
 
 CWD = Path.cwd()
 
