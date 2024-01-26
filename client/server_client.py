@@ -1,5 +1,6 @@
 from httpx import Client
-from server.schemas import Game, Trick, Position
+
+from server.schemas import Game, Position, Trick
 
 URL = 'http://localhost:8000/game'
 
@@ -26,6 +27,14 @@ class GameClient:
                 from_position=from_position,
                 to_position=to_position,
             ),
+        )
+
+    def remove_trick(self, position: Position):
+        """Убрать фишку."""
+        self.client.request(
+            url=URL,
+            method='DELETE',
+            json=position,
         )
 
     def __del__(self):

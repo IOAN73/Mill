@@ -1,7 +1,8 @@
-import pygame
 import sys
 
-from server.schemas import Trick, Color
+import pygame
+
+from server.schemas import Color, Trick
 
 # Инициализация Pygame
 pygame.init()

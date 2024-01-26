@@ -1,10 +1,12 @@
+import random
+import sys
+from pathlib import Path
+
 import click
 import pygame
-import sys
-import random
-from pathlib import Path
+
 from client.server_client import GameClient
-from server.schemas import Trick, Color
+from server.schemas import Color, Trick
 
 CWD = Path.cwd()
 

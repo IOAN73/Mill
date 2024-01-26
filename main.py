@@ -1,7 +1,7 @@
-import pygame
-import sys
 import random
+import sys
 
+import pygame
 
 # Инициализация Pygame
 pygame.init()
