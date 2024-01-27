@@ -2,7 +2,7 @@ from collections import Counter
 from enum import StrEnum
 from typing import TypeAlias
 
-from pydantic import BaseModel
+from pydantic import BaseModel, computed_field
 
 from server.exceptions import (
     CantRemove,
@@ -113,11 +113,56 @@ class Game(BaseModel):
             try:
                 points = [self._find_trick(point) for point in potential_mill]
                 colors = set(self.tricks[point].color for point in points)
-                if colors.pop() == trick.color:
+                if colors - {trick.color} == {}:
                     return True
             except TrickNotFound:
                 continue
         return False
+
+    def _check_trick_can_move(self, position: Position):
+        neighbors = desk[position]
+        try:
+            [self._find_trick(point) for point in neighbors]
+            return False
+        except TrickNotFound:
+            return True
+
+    def _check_color_can_move(self, color: Color):
+        tricks_can_move = set(
+            self._check_trick_can_move(trick.position)
+            for trick in self._user_tricks(color)
+        )
+        if tricks_can_move - {False} == {}:
+            return False
+        return True
+
+    def _user_tricks(self, color: Color):
+        return [trick for trick in self.tricks if trick.color == color]
+
+    @computed_field
+    @property
+    def winner(self) -> Color | None:
+        black = self._check_color_can_move(Color.black)
+        white = self._check_color_can_move(Color.white)
+        if not black:
+            return Color.white
+        if not white:
+            return Color.black
+        if (
+                len(self._user_tricks(Color.white)) < 3
+                and self.free_tricks[Color.white] == 0
+        ):
+            return Color.black
+        if (
+                len(self._user_tricks(Color.black)) < 3
+                and self.free_tricks[Color.black] == 0
+        ):
+            return Color.white
+        return None
+
+
+
+
 
 
 class Movement(BaseModel):
