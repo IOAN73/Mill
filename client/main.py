@@ -58,6 +58,15 @@ points = {
     (6, 6): (670, 670),
 }
 
+pieces = {(0, 0): None, (3, 0): None, (6, 0): None,
+          (1, 1): None, (3, 1): None, (5, 1): None,
+          (2, 2): None, (3, 2): None, (4, 2): None,
+          (0, 3): None, (1, 3): None, (2, 3): None,
+          (4, 3): None, (5, 3): None, (6, 3): None,
+          (2, 4): None, (3, 4): None, (4, 4): None,
+          (1, 5): None, (3, 5): None, (5, 5): None,
+          (0, 6): None, (3, 6): None, (6, 6): None, }
+
 
 def draw_select_color_screen():
     screen.fill(WHITE)
@@ -84,6 +93,13 @@ def draw_select_color_screen():
     return black_player_button, white_player_button
 
 
+def position_to_pixel(position):
+    col, row = int(position[0]), int(position[1])
+    x = (col - 0.4) * 100 + 30
+    y = (row - 1.4) * 100 + 20
+    return x, y
+
+
 def handle_select_color_screen(
         mouse_position,
         black_player_button,
@@ -97,9 +113,14 @@ def handle_select_color_screen(
         return None
 
 
-def draw_points(tricks: list[Trick]):
+color_conv = {Color.white: WHITE,
+              Color.black: BLACK,
+              }
+
+
+def draw_tricks(tricks: list[Trick]):
     for trick in tricks:
-        pygame.draw.circle(screen, BLACK, points[trick.position], 10)
+        pygame.draw.circle(screen, color_conv[trick.color], points[trick.position], 40)
 
 
 def select_color() -> Color:
@@ -121,19 +142,36 @@ def select_color() -> Color:
             pygame.display.flip()
 
 
-def main_game_loop(game_client: GameClient, player_color: Color):
-    game = game_client.get_game()
+def get_clicked_position(mouse_position):
+    for pos, (x, y) in points.items():
+        rect = pygame.Rect(x - 35, y - 35, 70, 70)
+        if rect.collidepoint(mouse_position) and pieces[pos] is None:
+            return pos
+    return None
+
+
+def game(game_client: GameClient):
+    color = select_color()
     while True:
-        if int(time()) % 5 == 0:
-            game = game_client.get_game()
+        game = game_client.get_game()
         screen.blit(game_board_image, (0, 0))
-        draw_points(game.tricks)
+        draw_tricks(game.tricks)
         pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_position = pygame.mouse.get_pos()
+                clicked_position = get_clicked_position(mouse_position)
+                if clicked_position:
+                    trick = Trick(color=color, position=clicked_position)
+                    game_client.set_trick(trick)
 
 
 def main_game(game_client: GameClient):
-    player_color = select_color()
-    main_game_loop(game_client, player_color)
+    game(game_client)
 
 
 @click.command()
