@@ -66,6 +66,7 @@ class Game(BaseModel):
         self._check_position_is_free(to_position)
         trick_index = self._find_trick(from_position)
         self._check_turn(self.tricks[trick_index].color)
+        self._check_should_remove()
         trick = self.tricks.pop(trick_index)
         trick.position = to_position
         self.set_trick(trick, is_move=True)
