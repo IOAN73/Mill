@@ -53,6 +53,7 @@ class Game(BaseModel):
         if not self._check_mills(trick):
             self.turn = ~trick.color
             return
+        print('mills not found')
         self.need_remove = True
 
     def move_trick(
