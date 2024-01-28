@@ -161,10 +161,6 @@ class Game(BaseModel):
         return None
 
 
-
-
-
-
 class Movement(BaseModel):
     from_position: Position
     to_position: Position
