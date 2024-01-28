@@ -43,6 +43,7 @@ class Game(BaseModel):
 
     def set_trick(self, trick: Trick, is_move: bool = False):
         self._check_turn(trick.color)
+        self._check_should_remove()
         self._check_position_is_free(trick.position)
         if not is_move:
             if self.free_tricks[trick.color] < 1:
@@ -89,6 +90,10 @@ class Game(BaseModel):
         for placed_trick in self.tricks:
             if placed_trick.position == position:
                 raise TrickSetError
+
+    def _check_should_remove(self):
+        if self.need_remove:
+            raise TrickSetError
 
     @staticmethod
     def _check_position_is_accessible(
