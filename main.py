@@ -1,9 +1,11 @@
-import click
-import pygame
 import sys
 from pathlib import Path
+
+import click
+import pygame
+
 from client.server_client import GameClient
-from server.schemas import Trick, Color
+from server.schemas import Color, Trick
 
 CWD = Path.cwd()
 
@@ -93,37 +95,44 @@ def draw_select_color_screen():
 
     return black_player_button, white_player_button
 
-
+selected_color = None
+player_color = None
 # Функция для обработки выбора цвета фишек экрана
-def handel_select_color_screen(mouse_position, black_player_button, white_player_button, ):
+def handle_select_color_screen(mouse_position, black_player_button, white_player_button):
+    global selected_color, player_color
+
     if black_player_button.collidepoint(mouse_position):
+        selected_color = 'black'
+        player_color = 'white'  # цвет другого игрока
         return 'black_player'
     elif white_player_button.collidepoint(mouse_position):
+        selected_color = 'white'
+        player_color = 'black'  # цвет другого игрока
         return 'white_player'
     else:
         return None
 
 
 # Добавление координат точек на игровом поле
-points = {'A1': (30, 30), 'A4': (30, 350), 'A7': (30, 670),
-          'B2': (135, 140), 'B4': (135, 350), 'B6': (135, 560),
-          'C3': (240, 240), 'C4': (240, 350), 'C5': (240, 450),
-          'D1': (350, 30), 'D2': (350, 140), 'D3': (350, 240),
-          'D5': (350, 450), 'D6': (350, 560), 'D7': (350, 670),
-          'E3': (450, 240), 'E4': (450, 350), 'E5': (450, 450),
-          'F2': (560, 140), 'F4': (560, 350), 'F6': (560, 560),
-          'G1': (670, 30), 'G4': (670, 350), 'G7': (670, 670),
+points = {(0, 0): (30, 30), (3, 0): (30, 350), (6, 0): (30, 670),
+          (1, 1): (135, 140), (3, 1): (135, 350), (5, 1): (135, 560),
+          (2, 2): (240, 240), (3, 2): (240, 350), (4, 2): (240, 450),
+          (0, 3): (350, 30), (1, 3): (350, 140), (2, 3): (350, 240),
+          (4, 3): (350, 450), (5, 3): (350, 560), (6, 3): (350, 670),
+          (2, 4): (450, 240), (3, 4): (450, 350), (4, 4): (450, 450),
+          (1, 5): (560, 140), (3, 5): (560, 350), (5, 5): (560, 560),
+          (0, 6): (670, 30), (3, 6): (670, 350), (6, 6): (670, 670),
           }
 
 # Расположение фишек
-pieces = {'A1': None, 'A4': None, 'A7': None,
-          'B2': None, 'B4': None, 'B6': None,
-          'C3': None, 'C4': None, 'C5': None,
-          'D1': None, 'D2': None, 'D3': None, 'D5': None, 'D6': None,
-          'D7': None,
-          'E3': None, 'E4': None, 'E5': None,
-          'F2': None, 'F4': None, 'F6': None,
-          'G1': None, 'G4': None, 'G7': None}
+pieces = {(0, 0): None, (3, 0): None, (6, 0): None,
+          (1, 1): None, (3, 1): None, (5, 1): None,
+          (2, 2): None, (3, 2): None, (4, 2): None,
+          (0, 3): None, (1, 3): None, (2, 3): None,
+          (4, 3): None, (5, 3): None, (6, 3): None,
+          (2, 4): None, (3, 4): None, (4, 4): None,
+          (1, 5): None, (3, 5): None, (5, 5): None,
+          (0, 6): None, (3, 6): None, (6, 6): None,}
 
 # Расположение фишек black
 black_pieces = {}
@@ -132,21 +141,22 @@ black_pieces = {}
 white_pieces = {}
 
 
+
 # Функция отрисовки точек
 def draw_points():
     for pos, (x, y) in points.items():
         pygame.draw.circle(screen, BLACK, (x, y), 10)
         font = pygame.font.Font(None, 24)
-        text = font.render(pos, True, BLACK)
+        text = font.render(str(pos), True, BLACK)  # Внесли изменение здесь
         text_rect = text.get_rect(center=(x, y))
         screen.blit(text, text_rect)
 
 
 # Преобразование позиции в координаты на экране
 def position_to_pixel(position):
-    letters = 'ABCDEFG'
-    x = (letters.index(position[0]) - 0.4) * 100 + 30
-    y = (int(position[1]) - 1.4) * 100 + 20
+    col, row = int(position[0]), int(position[1])
+    x = (col - 0.4) * 100 + 30
+    y = (row - 1.4) * 100 + 20
     return x, y
 
 
@@ -184,21 +194,16 @@ def handle_player_click_human(mouse_position):
                 pieces[pos] = turn
                 x, y = position_to_pixel(pos)
                 if turn == 'black':
-                    black_pieces[pos] = (x // 100 + 1, y // 100 + 1)
+                    black_pieces[pos] = (int(pos[0]), int(pos[1]))
                     trick = Trick(color=Color.black, position=black_pieces[pos])
                 else:
-                    white_pieces[pos] = (x // 100 + 1, y // 100 + 1)
+                    white_pieces[pos] = (int(pos[0]), int(pos[1]))
                     trick = Trick(color=Color.white, position=white_pieces[pos])
 
                 change_turn()
                 client.set_trick(trick)
                 draw_board()
                 pygame.display.flip()
-
-                # Проверяем мельницу после каждого хода
-                mill_positions = get_mill_positions(pos)
-                if mill_positions:
-                    print(f'Mill formed at positions: {mill_positions} by {turn} player')
 
                 # Выводим словари после каждого хода
                 print("Black Pieces:", black_pieces)
@@ -250,10 +255,19 @@ def get_mill_positions(position):
     return [], None
 
 
+def update_pieces_from_server(color, position):
+    global black_pieces, white_pieces
+
+    if color == game.Turn:
+        game.tricks = position_to_pixel(position)
+    elif color == game.Turn:
+        game.tricks = position_to_pixel(position)
+
+
+
 def setup_pieces_human():
     global turn
 
-    player_turn = True
     screen.fill(WHITE)
     draw_board()
     pygame.display.flip()
@@ -272,30 +286,39 @@ def setup_pieces_human():
 
 
 def main_game_loop(game_mode):
+    global turn, selected_color, player_color
+
     if game_mode == 'two_players':
-        setup_pieces_human()
+        select_color_screen_buttons = draw_select_color_screen()
+        selecting_color = True
+        while selecting_color:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    mouse_position = pygame.mouse.get_pos()
+                    color_choice = handle_select_color_screen(mouse_position, *select_color_screen_buttons)
+                    if color_choice:
+                        selecting_color = False
+                        setup_pieces_human()
+            pygame.display.flip()
+
     elif game_mode == 'vs_computer':
-        pass
-
-    # Выводим словари перед игровым циклом
-    print("Initial Black Pieces:", black_pieces)
-    print("Initial White Pieces:", white_pieces)
-
-    while any(piece is None for piece in pieces.values()):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                mouse_position = pygame.mouse.get_pos()
-                handle_player_click_human(mouse_position)
-
-                # Выводим текущее состояние доски
-                print_board()
-
-    # Выводим словари после завершения игры
-    print("Final Black Pieces:", black_pieces)
-    print("Final White Pieces:", white_pieces)
+        select_color_screen_buttons = draw_select_color_screen()
+        selecting_color = True
+        while selecting_color:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    mouse_position = pygame.mouse.get_pos()
+                    color_choice = handle_select_color_screen(mouse_position, *select_color_screen_buttons)
+                    if color_choice:
+                        selecting_color = False
+                        # comp master
+            pygame.display.flip()
 
 
 def change_turn():
@@ -312,14 +335,11 @@ def print_board():
         print()
 
 
-@click.command()
-@click.argument('color')
-def main(color):
+# @click.command()
+# @click.argument('color')
+def main():
     running = True
-    print(color)
     game_mode = None  # Режим игры: 'two_players' или 'vs_computer'
-    # color_player = None
-
     start_screen_buttons = draw_start_screen()
 
     while running and game_mode is None:
@@ -333,11 +353,23 @@ def main(color):
         pygame.display.flip()
 
     if game_mode:
+        # Запускаем основной игровой цикл
         main_game_loop(game_mode)
+
+        # Получаем информацию о цвете и позиции фишек с сервера и обновляем доску
+        while True:
+            color, position = client.get_game()
+
+            if color and position:
+                update_pieces_from_server(color, position)
+                draw_board()
+                pygame.display.flip()
 
     pygame.quit()
     sys.exit()
 
+
+game = client.get_game()
 
 if __name__ == "__main__":
     main()
