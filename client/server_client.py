@@ -2,27 +2,26 @@ from httpx import Client
 
 from server.schemas import Game, Position, Trick
 
-URL = 'http://localhost:8000/game'
-
 
 class GameClient:
-    def __init__(self):
+    def __init__(self, url: str):
+        self._url = url
         self.client = Client()
         self.get_game()
 
     def get_game(self) -> Game:
         """Получить текущую игру."""
-        response = self.client.get(URL)
+        response = self.client.get(self._url)
         return Game(**response.json())
 
     def set_trick(self, trick: Trick):
         """Установить фишку на поле."""
-        self.client.post(url=URL, json=trick.model_dump())
+        self.client.post(url=self._url, json=trick.model_dump())
 
     def move_trick(self, from_position: Position, to_position: Position):
         """Переместить фишку"""
         self.client.patch(
-            url=URL,
+            url=self._url,
             json=dict(
                 from_position=from_position,
                 to_position=to_position,
@@ -32,7 +31,7 @@ class GameClient:
     def remove_trick(self, position: Position):
         """Убрать фишку."""
         self.client.request(
-            url=URL,
+            url=self._url,
             method='DELETE',
             json=position,
         )
