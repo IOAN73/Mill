@@ -113,7 +113,7 @@ class Game(BaseModel):
             try:
                 points = [self._find_trick(point) for point in potential_mill]
                 colors = set(self.tricks[point].color for point in points)
-                if colors - {trick.color} == {}:
+                if len(colors - {trick.color}) == 0:
                     return True
             except TrickNotFound:
                 continue
@@ -132,7 +132,7 @@ class Game(BaseModel):
             self._check_trick_can_move(trick.position)
             for trick in self._user_tricks(color)
         )
-        if tricks_can_move - {False} == {}:
+        if len(tricks_can_move - {False}) == 0:
             return False
         return True
 
