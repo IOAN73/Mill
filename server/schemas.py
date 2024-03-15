@@ -77,7 +77,7 @@ class Game(BaseModel):
             raise TurnError
         if not self.need_remove:
             raise CantRemove
-        self.turn = ~self.tricks[trick_index].color
+        self.turn = self.tricks[trick_index].color
         self.tricks.pop(trick_index)
         self.need_remove = False
 
