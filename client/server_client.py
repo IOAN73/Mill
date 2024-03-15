@@ -1,4 +1,4 @@
-from httpx import Client
+from httpx import Client, HTTPError
 
 from server.schemas import Game, Position, Trick
 
@@ -11,30 +11,41 @@ class GameClient:
 
     def get_game(self) -> Game:
         """Получить текущую игру."""
-        response = self.client.get(self._url)
-        return Game(**response.json())
+        try:
+            response = self.client.get(self._url)
+            return Game(**response.json())
+        except HTTPError:
+            print('server error')
 
     def set_trick(self, trick: Trick):
         """Установить фишку на поле."""
-        self.client.post(url=self._url, json=trick.model_dump())
+        try:
+            self.client.post(url=self._url, json=trick.model_dump())
+        except HTTPError:
+            print('server error')
 
     def move_trick(self, from_position: Position, to_position: Position):
         """Переместить фишку"""
-        self.client.patch(
-            url=self._url,
-            json=dict(
-                from_position=from_position,
-                to_position=to_position,
-            ),
-        )
+        try:
+            self.client.patch(
+                url=self._url,
+                json=dict(
+                    from_position=from_position,
+                    to_position=to_position,
+                ),
+            )
+        except HTTPError:
+            print('server error')
 
     def remove_trick(self, position: Position):
         """Убрать фишку."""
-        self.client.request(
-            url=self._url,
-            method='DELETE',
-            json=position,
-        )
+        try:
+            self.client.request(
+                url=self._url,
+                method='DELETE',
+                json=position)
+        except HTTPError:
+            print('server error')
 
     def __del__(self):
         self.client.close()
