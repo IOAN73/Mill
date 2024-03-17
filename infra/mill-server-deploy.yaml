@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mill-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mill
+  template:
+    metadata:
+      name: mill
+      labels:
+        app: mill
+    spec:
+      containers:
+        - name: mill-serv
+          image: localhost:5000/mill
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
