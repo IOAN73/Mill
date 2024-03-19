@@ -151,9 +151,11 @@ def get_clicked_position(mouse_position):
 
 
 def game(game_client: GameClient):
-    color = select_color()
+    player_color = select_color()
     while True:
         game = game_client.get_game()
+        if game.turn == player_color and game.need_remove:
+            ...
         screen.blit(game_board_image, (0, 0))
         draw_tricks(game.tricks)
         pygame.display.flip()
@@ -166,7 +168,7 @@ def game(game_client: GameClient):
                 mouse_position = pygame.mouse.get_pos()
                 clicked_position = get_clicked_position(mouse_position)
                 if clicked_position:
-                    trick = Trick(color=color, position=clicked_position)
+                    trick = Trick(color=player_color, position=clicked_position)
                     game_client.set_trick(trick)
 
 
