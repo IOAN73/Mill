@@ -154,8 +154,6 @@ def game(game_client: GameClient):
     player_color = select_color()
     while True:
         game = game_client.get_game()
-        if game.turn == player_color and game.need_remove:
-            ...
         screen.blit(game_board_image, (0, 0))
         draw_tricks(game.tricks)
         pygame.display.flip()
@@ -170,6 +168,8 @@ def game(game_client: GameClient):
                 if clicked_position:
                     trick = Trick(color=player_color, position=clicked_position)
                     game_client.set_trick(trick)
+                    # if game.turn == player_color and game.need_remove:
+                    game_client.remove_trick(get_clicked_position(clicked_position))
 
 
 def main_game(game_client: GameClient):
