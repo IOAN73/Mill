@@ -294,37 +294,20 @@ def setup_pieces_human():
 def main_game_loop(game_mode):
     global turn, player_color
 
-    if game_mode == 'two_players':
-        select_color_screen_buttons = draw_select_color_screen()
-        selecting_color = True
-        while selecting_color:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    mouse_position = pygame.mouse.get_pos()
-                    color_choice = handle_select_color_screen(mouse_position, *select_color_screen_buttons)
-                    if color_choice:
-                        selecting_color = False
-                        setup_pieces_human()  # Переносим вызов после успешного выбора цвета
-            pygame.display.flip()
-
-    elif game_mode == 'vs_computer':
-        select_color_screen_buttons = draw_select_color_screen()
-        selecting_color = True
-        while selecting_color:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    mouse_position = pygame.mouse.get_pos()
-                    color_choice = handle_select_color_screen(mouse_position, *select_color_screen_buttons)
-                    if color_choice:
-                        selecting_color = False
-                        # comp master
-            pygame.display.flip()
+    select_color_screen_buttons = draw_select_color_screen()
+    selecting_color = True
+    while selecting_color:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_position = pygame.mouse.get_pos()
+                color_choice = handle_select_color_screen(mouse_position, *select_color_screen_buttons)
+                if color_choice:
+                    selecting_color = False
+                    setup_pieces_human()  # Переносим вызов после успешного выбора цвета
+        pygame.display.flip()
 
     while True:
         color, position = client.get_game()

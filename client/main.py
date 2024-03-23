@@ -72,25 +72,35 @@ def draw_select_color_screen():
     screen.fill(WHITE)
     font = pygame.font.Font(None, 36)
 
+    name = font.render("МЕЛЬНИЦА", True, BLACK)
+    text_rect = name.get_rect(center=(WIDTH / 2, HEIGHT / 10))
+    screen.blit(name, text_rect)
+
     text = font.render("Выберите цвет фишки", True, BLACK)
     text_rect = text.get_rect(center=(WIDTH / 2, HEIGHT / 4))
     screen.blit(text, text_rect)
 
     button_font = pygame.font.Font(None, 28)
 
-    black_player_button = pygame.Rect(WIDTH / 4, HEIGHT / 2, WIDTH / 2, 50)
+    black_player_button = pygame.Rect(WIDTH / 4, HEIGHT / 3, WIDTH / 2, 50)
     pygame.draw.rect(screen, BLACK, black_player_button)
     text = button_font.render("Черные фишки", True, WHITE)
     text_rect = text.get_rect(center=black_player_button.center)
     screen.blit(text, text_rect)
 
-    white_player_button = pygame.Rect(WIDTH / 4, HEIGHT * 3 / 4, WIDTH / 2, 50)
+    white_player_button = pygame.Rect(WIDTH / 4, HEIGHT * 3 / 6, WIDTH / 2, 50)
     pygame.draw.rect(screen, BLACK, white_player_button)
     text = button_font.render("Белые фишки", True, WHITE)
     text_rect = text.get_rect(center=white_player_button.center)
     screen.blit(text, text_rect)
 
-    return black_player_button, white_player_button
+    help_button = pygame.Rect(WIDTH / 4, HEIGHT * 5 / 6, WIDTH / 2, 50)
+    pygame.draw.rect(screen, BLACK, help_button)
+    text = button_font.render("Правила игры", True, WHITE)
+    text_rect = text.get_rect(center=help_button.center)
+    screen.blit(text, text_rect)
+
+    return black_player_button, white_player_button, help_button
 
 
 def position_to_pixel(position):
@@ -104,6 +114,7 @@ def handle_select_color_screen(
         mouse_position,
         black_player_button,
         white_player_button,
+        help_button,
 ) -> Color | None:
     if black_player_button.collidepoint(mouse_position):
         return Color.black
@@ -139,7 +150,23 @@ def select_color() -> Color:
                     )
                     if color_choice:
                         return color_choice
+                    # help()
             pygame.display.flip()
+
+
+def help():
+    background_colour = (255, 255, 255)
+    screen = pygame.display.set_mode((300, 300))
+    pygame.display.set_caption('Правила игры')
+    screen.fill(background_colour)
+    pygame.display.flip()
+    running = True
+    while running:
+
+        for event in pygame.event.get():
+
+            if event.type == pygame.QUIT:
+                running = False
 
 
 def get_clicked_position(mouse_position):
@@ -152,11 +179,22 @@ def get_clicked_position(mouse_position):
 
 def game(game_client: GameClient):
     player_color = select_color()
+    # kakaya_nebud
     while True:
         game = game_client.get_game()
         screen.blit(game_board_image, (0, 0))
         draw_tricks(game.tricks)
         pygame.display.flip()
+
+        if game.need_remove:
+            pygame.display.set_caption(f'У игрока {game.turn} образована мельница')
+        else:
+            pygame.display.set_caption(f'Ход игрока {player_color}, кол-во фишек: {game.free_tricks[player_color]}')
+
+        # try:
+        #     game_client.move_trick(...)
+        # except ValueError:
+        #     print(":0")
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -168,8 +206,10 @@ def game(game_client: GameClient):
                 if clicked_position:
                     trick = Trick(color=player_color, position=clicked_position)
                     game_client.set_trick(trick)
-                    # if game.turn == player_color and game.need_remove:
-                    game_client.remove_trick(get_clicked_position(clicked_position))
+                if game.need_remove and game.turn == player_color:
+                    game_client.remove_trick(clicked_position)
+                if game.free_tricks == 0:
+                    game_client.move_trick()
 
 
 def main_game(game_client: GameClient):

@@ -27,13 +27,15 @@ class GameClient:
     def move_trick(self, from_position: Position, to_position: Position):
         """Переместить фишку"""
         try:
-            self.client.patch(
+            response = self.client.patch(
                 url=self._url,
                 json=dict(
                     from_position=from_position,
                     to_position=to_position,
                 ),
             )
+            if response.status_code != 200:
+                raise ValueError
         except HTTPError:
             print('server error')
 

@@ -7,3 +7,4 @@ def game():
         for event in ...:
             trick = Trick(color, pos)
             client.set_trick(trick)
+
