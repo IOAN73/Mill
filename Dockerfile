@@ -1,4 +1,4 @@
-ёёFROM python:3.11 AS builder
+FROM python:3.11 AS builder
 
 WORKDIR /app
 COPY pyproject.toml poetry.lock ./

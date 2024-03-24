@@ -114,7 +114,6 @@ def handle_select_color_screen(
         mouse_position,
         black_player_button,
         white_player_button,
-        help_button,
 ) -> Color | None:
     if black_player_button.collidepoint(mouse_position):
         return Color.black
@@ -150,7 +149,7 @@ def select_color() -> Color:
                     )
                     if color_choice:
                         return color_choice
-                    # help()
+
             pygame.display.flip()
 
 
