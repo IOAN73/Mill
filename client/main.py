@@ -1,5 +1,5 @@
 import sys
-from time import time
+from time import time, sleep
 from pathlib import Path
 
 import click
@@ -178,7 +178,7 @@ def get_clicked_position(mouse_position):
 
 def game(game_client: GameClient):
     player_color = select_color()
-    move_pos = []
+    position_1 = None
     while True:
         game = game_client.get_game()
         screen.blit(game_board_image, (0, 0))
@@ -190,12 +190,13 @@ def game(game_client: GameClient):
         else:
             pygame.display.set_caption(f'Ход игрока {player_color}, кол-во фишек: {game.free_tricks[player_color]}')
 
-        if game.winner == player_color:
+        if game.winner is not None:
             font = pygame.font.SysFont('Comic Sans MS', 20)
-            text_game_over = font.render(f"Игра окончена! Выйграл игрок: {player_color}", True, (255, 0, 0))
+            text_game_over = font.render(f"Игра окончена! Выйграл игрок: {game.winner}", True, (255, 0, 0))
             screen.blit(text_game_over, (150, 150))
+            print(f"Игра окончена! Выйграл игрок: {game.winner}")
+            sleep(3)
 
-            print(f"Игра окончена! Выйграл игрок: {player_color}")
 
         # try:
         #     game_client.move_trick(...)
@@ -214,8 +215,26 @@ def game(game_client: GameClient):
                     game_client.set_trick(trick)
                 if game.need_remove and game.turn == player_color:
                     game_client.remove_trick(clicked_position)
-                if game.free_tricks == 0 and game.turn == player_color:
-                    ...
+                if (
+                    game.free_tricks[player_color] == 0
+                    and game.turn == player_color
+                    and position_1 is not None
+                ):
+                    try:
+                        game_client.move_trick(
+                            position_1,
+                            clicked_position,
+                        )
+                    except ValueError:
+                        pass
+                    finally:
+                        position_1 = None
+                if (
+                    game.free_tricks[player_color] == 0
+                    and game.turn == player_color
+                    and position_1 is None
+                ):
+                    position_1 = clicked_position
 
 
 def main_game(game_client: GameClient):

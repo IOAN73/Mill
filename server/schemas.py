@@ -134,9 +134,12 @@ class Game(BaseModel):
             return True
 
     def _check_color_can_move(self, color: Color):
+        player_tricks = self._user_tricks(color)
+        if len(player_tricks) == 0 and self.free_tricks[color] != 0:
+            return True
         tricks_can_move = set(
             self._check_trick_can_move(trick.position)
-            for trick in self._user_tricks(color)
+            for trick in player_tricks
         )
         if len(tricks_can_move - {False}) == 0:
             return False
