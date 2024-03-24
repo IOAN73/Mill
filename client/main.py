@@ -1,3 +1,4 @@
+import os
 import sys
 from time import time, sleep
 from pathlib import Path
@@ -10,9 +11,18 @@ from server.schemas import Color, Trick
 
 CWD = Path.cwd()
 
-GAME_BOARD_IMAGE_PATH = CWD / 'static' / 'pole.jpg'
-BLACK_PIECE_IMAGE_PATH = CWD / 'static' / 'black.png'
-WHITE_PIECE_IMAGE_PATH = CWD / 'static' / 'white.png'
+def fetch_resource(resource_path: Path) -> Path:
+    try:
+        base_path = Path(sys._MEIPASS)
+    except AttributeError:
+        return resource_path
+    else:
+        return base_path.joinpath(resource_path)
+
+
+GAME_BOARD_IMAGE_PATH = fetch_resource(Path('static') / 'pole.jpg')
+BLACK_PIECE_IMAGE_PATH = fetch_resource(Path('static') / 'black.png')
+WHITE_PIECE_IMAGE_PATH = fetch_resource(Path('static') / 'white.png')
 
 # Инициализация Pygame
 pygame.init()

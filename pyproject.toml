@@ -7,7 +7,7 @@ license = ""
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = ">=3.11,<3.13"
 click = "^8.1.7"
 
 
@@ -23,10 +23,14 @@ uvicorn = "^0.26.0"
 
 [tool.poetry.group.dev.dependencies]
 isort = "^5.13.2"
+pyinstaller = "^6.5.0"
 
 [tool.isort]
 multi_line_output = 3
 include_trailing_comma = true
+
+[tool.poetry.scripts]
+build = 'build:build'
 
 [build-system]
 requires = ["poetry-core"]
