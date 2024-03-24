@@ -187,13 +187,18 @@ def game(game_client: GameClient):
 
         if game.need_remove:
             pygame.display.set_caption(f'У игрока {game.turn} образована мельница')
+        elif game.free_tricks[player_color] == 0 and game.turn == player_color:
+            pygame.display.set_caption(f'Игрок {game.turn} должен передвинуть фишку')
         else:
-            pygame.display.set_caption(f'Ход игрока {player_color}, кол-во фишек: {game.free_tricks[player_color]}')
+            pygame.display.set_caption(f'Ход игрока {game.turn}, кол-во фишек: {game.free_tricks[player_color]}')
+
+
 
         if game.winner is not None:
             font = pygame.font.SysFont('Comic Sans MS', 20)
             text_game_over = font.render(f"Игра окончена! Выйграл игрок: {game.winner}", True, (255, 0, 0))
             screen.blit(text_game_over, (150, 150))
+            pygame.display.flip()
             print(f"Игра окончена! Выйграл игрок: {game.winner}")
             sleep(3)
 
@@ -215,6 +220,7 @@ def game(game_client: GameClient):
                     game_client.set_trick(trick)
                 if game.need_remove and game.turn == player_color:
                     game_client.remove_trick(clicked_position)
+
                 if (
                     game.free_tricks[player_color] == 0
                     and game.turn == player_color
