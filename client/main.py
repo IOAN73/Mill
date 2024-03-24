@@ -94,13 +94,13 @@ def draw_select_color_screen():
     text_rect = text.get_rect(center=white_player_button.center)
     screen.blit(text, text_rect)
 
-    help_button = pygame.Rect(WIDTH / 4, HEIGHT * 5 / 6, WIDTH / 2, 50)
-    pygame.draw.rect(screen, BLACK, help_button)
-    text = button_font.render("Правила игры", True, WHITE)
-    text_rect = text.get_rect(center=help_button.center)
-    screen.blit(text, text_rect)
+    # help_button = pygame.Rect(WIDTH / 4, HEIGHT * 5 / 6, WIDTH / 2, 50)
+    # pygame.draw.rect(screen, BLACK, help_button)
+    # text = button_font.render("Правила игры", True, WHITE)
+    # text_rect = text.get_rect(center=help_button.center)
+    # screen.blit(text, text_rect)
 
-    return black_player_button, white_player_button, help_button
+    return black_player_button, white_player_button
 
 
 def position_to_pixel(position):
@@ -154,19 +154,19 @@ def select_color() -> Color:
             pygame.display.flip()
 
 
-def help():
-    background_colour = (255, 255, 255)
-    screen = pygame.display.set_mode((300, 300))
-    pygame.display.set_caption('Правила игры')
-    screen.fill(background_colour)
-    pygame.display.flip()
-    running = True
-    while running:
-
-        for event in pygame.event.get():
-
-            if event.type == pygame.QUIT:
-                running = False
+# def help():
+#     background_colour = (255, 255, 255)
+#     screen = pygame.display.set_mode((300, 300))
+#     pygame.display.set_caption('Правила игры')
+#     screen.fill(background_colour)
+#     pygame.display.flip()
+#     running = True
+#     while running:
+#
+#         for event in pygame.event.get():
+#
+#             if event.type == pygame.QUIT:
+#                 running = False
 
 
 def get_clicked_position(mouse_position):
@@ -179,7 +179,7 @@ def get_clicked_position(mouse_position):
 
 def game(game_client: GameClient):
     player_color = select_color()
-    # kakaya_nebud
+    move_pos = []
     while True:
         game = game_client.get_game()
         screen.blit(game_board_image, (0, 0))
@@ -190,6 +190,13 @@ def game(game_client: GameClient):
             pygame.display.set_caption(f'У игрока {game.turn} образована мельница')
         else:
             pygame.display.set_caption(f'Ход игрока {player_color}, кол-во фишек: {game.free_tricks[player_color]}')
+
+        if game.winner == player_color:
+            font = pygame.font.SysFont('Comic Sans MS', 20)
+            text_game_over = font.render(f"Игра окончена! Выйграл игрок: {player_color}", True, (255, 0, 0))
+            screen.blit(text_game_over, (150, 150))
+
+            print(f"Игра окончена! Выйграл игрок: {player_color}")
 
         # try:
         #     game_client.move_trick(...)
@@ -208,8 +215,8 @@ def game(game_client: GameClient):
                     game_client.set_trick(trick)
                 if game.need_remove and game.turn == player_color:
                     game_client.remove_trick(clicked_position)
-                if game.free_tricks == 0:
-                    game_client.move_trick()
+                if game.free_tricks == 0 and game.turn == player_color:
+                    ...
 
 
 def main_game(game_client: GameClient):
