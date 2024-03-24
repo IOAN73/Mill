@@ -250,8 +250,9 @@ def main_game(game_client: GameClient):
 @click.command()
 @click.option('--host', '-h', default='localhost')
 @click.option('--port', '-p', default=8000)
-def main(host, port):
-    url = f'http://{host}:{port}/game'
+@click.option('--root', '-r', default='')
+def main(host, port, root):
+    url = f'http://{host}:{port}{root}/game'
     game_client = GameClient(url)
     main_game(game_client)
 

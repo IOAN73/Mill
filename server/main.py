@@ -46,4 +46,4 @@ async def game_error_handler(request: Request, error: GameError):
 if __name__ == '__main__':
     from uvicorn import run
 
-    run('server.main:app', log_level='warning')
+    run('server.main:app', log_level='warning', host='0.0.0.0', port=8000)
